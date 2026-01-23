@@ -1,17 +1,21 @@
 package chess;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.ArrayList;
 
 public class PieceMovesCalculator {
-    ChessBoard board;
-    ChessPosition myPosition;
 
-    public PieceMovesCalculator(ChessBoard board, ChessPosition myPosition) {
-        this.board = board;
-        this.myPosition = myPosition;
+    public ArrayList<ChessMove> piece(ChessBoard board, ChessPosition myPosition) {
+        ChessPiece piece  = board.getPiece(myPosition);
+        if(piece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            return rookMovesCalc(myPosition);
+        }
+
+        return rookMovesCalc(myPosition);
     }
-    public Collection<ChessMove> piece(ChessBoard board, ChessPosition myPosition) {
-        return List.of();
+
+    ArrayList<ChessMove> rookMovesCalc(ChessPosition myPosition) {
+        ArrayList<ChessMove> rookMoves = new ArrayList<ChessMove>();
+        rookMoves.add(new ChessMove(new ChessPosition(2,3), new ChessPosition(2,4), null));
+        return rookMoves;
     }
 }
