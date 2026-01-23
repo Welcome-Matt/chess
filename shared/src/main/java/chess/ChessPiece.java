@@ -53,7 +53,7 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         PieceMovesCalculator moveList = new PieceMovesCalculator();
-        return moveList.piece(board, myPosition);
+        return moveList.pieceMoves(board, myPosition);
     }
 
     @Override
