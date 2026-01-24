@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class PieceMovesCalculator {
 
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece  = board.getPiece(myPosition);
+        ChessPiece piece = board.getPiece(myPosition);
         if(piece.getPieceType() == ChessPiece.PieceType.KING) {
             KingMovesCalculator moveList = new KingMovesCalculator();
             return moveList.pieceMoves(board, myPosition);
@@ -31,6 +31,6 @@ public class PieceMovesCalculator {
             return moveList.pieceMoves(board, myPosition);
         }
 
-        return new ArrayList<ChessMove>();
+        return new ArrayList<>();
     }
 }

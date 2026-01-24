@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class KingMovesCalculator {
     
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> kingMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> kingMoves = new ArrayList<>();
         int currentRow = myPosition.getRow();
         int currentCol = myPosition.getColumn();
 

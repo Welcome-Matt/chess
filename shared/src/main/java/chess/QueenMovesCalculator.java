@@ -5,8 +5,11 @@ import java.util.ArrayList;
 public class QueenMovesCalculator {
     
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> queenMoves = new ArrayList<ChessMove>();
-        queenMoves.add(new ChessMove(new ChessPosition(2,3), new ChessPosition(2,4), null));
+        RookMovesCalculator cardinalMoves = new RookMovesCalculator();
+        BishopMovesCalculator ordinalMoves = new BishopMovesCalculator();
+        ArrayList<ChessMove> queenMoves = cardinalMoves.pieceMoves(board, myPosition);
+        ArrayList<ChessMove> queenMoves2 = ordinalMoves.pieceMoves(board, myPosition);
+        queenMoves.addAll(queenMoves2);
         return queenMoves;
     }
 }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class RookMovesCalculator {
 
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> rookMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> rookMoves = new ArrayList<>();
 
         int rookRow = myPosition.getRow() + 1;
         int rookCol = myPosition.getColumn();

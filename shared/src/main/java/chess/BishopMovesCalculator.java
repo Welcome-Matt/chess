@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class BishopMovesCalculator {
     
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> bishopMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> bishopMoves = new ArrayList<>();
         int bishopRow = myPosition.getRow() + 1;
         int bishopCol = myPosition.getColumn() + 1;
         while(bishopRow < 9 && bishopCol < 9) {
