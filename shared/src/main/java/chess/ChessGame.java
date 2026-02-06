@@ -11,10 +11,10 @@ import java.util.Collection;
  */
 public class ChessGame {
 
-    ChessBoard currentGame = new ChessBoard();
+    ChessBoard currentBoard = new ChessBoard();
     TeamColor currentTeam = TeamColor.WHITE;
     public ChessGame() {
-        currentGame.resetBoard();
+        currentBoard.resetBoard();
     }
 
     /**
@@ -41,6 +41,20 @@ public class ChessGame {
         BLACK
     }
 
+    private ChessBoard makeBoardCopy() {
+        ChessBoard copyBoard = new ChessBoard();
+        for (int x = 1; x < 9; x++) {
+            for (int y = 1; y < 9; y++) {
+                ChessPiece currentBoardPiece = currentBoard.getPiece(new ChessPosition(x,y));
+                if (currentBoardPiece != null) {
+                    copyBoard.addPiece(new ChessPosition(x, y), new ChessPiece(currentBoardPiece.getTeamColor(), currentBoardPiece.getPieceType()));
+                }
+            }
+        }
+
+        return copyBoard;
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -49,7 +63,20 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> validMoveList = new ArrayList<>();
+        Collection<ChessMove> pieceMoveList = currentBoard.getPiece(startPosition).pieceMoves(currentBoard, startPosition);
+        ChessBoard copyBoard = makeBoardCopy();
+        for (ChessMove move : pieceMoveList) {
+            currentBoard.addPiece(move.getEndPosition(), copyBoard.getPiece(startPosition));
+            currentBoard.addPiece(startPosition, null);
+            if (!isInCheck(currentTeam)) {
+                validMoveList.add(move);
+            }
+
+            currentBoard = copyBoard;
+        }
+
+        return validMoveList;
     }
 
     /**
@@ -74,7 +101,7 @@ public class ChessGame {
         boolean checkStatus = false;
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
-                currentPiece = currentGame.getPiece(new ChessPosition(x,y));
+                currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
                 if (currentPiece != null && currentPiece.getPieceType() == ChessPiece.PieceType.KING &&
                         currentPiece.getTeamColor() == teamColor) {
                     kingPosition = new ChessPosition(x,y);
@@ -84,10 +111,10 @@ public class ChessGame {
 
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
-                currentPiece = currentGame.getPiece(new ChessPosition(x,y));
+                currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
                 if (currentPiece != null &&
                         currentPiece.getTeamColor() != teamColor) {
-                    Collection<ChessMove> currentPieceMoves = currentPiece.pieceMoves(currentGame, new ChessPosition(x,y));
+                    Collection<ChessMove> currentPieceMoves = currentPiece.pieceMoves(currentBoard, new ChessPosition(x,y));
                     for (ChessMove pos : currentPieceMoves) {
                         assert kingPosition != null;
                         if (pos.getEndPosition().getColumn() == kingPosition.getColumn() && pos.getEndPosition().getRow() == kingPosition.getRow()) {
@@ -129,7 +156,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        currentGame = board;
+        currentBoard = board;
     }
 
     /**
@@ -138,6 +165,6 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        return currentGame;
+        return currentBoard;
     }
 }
