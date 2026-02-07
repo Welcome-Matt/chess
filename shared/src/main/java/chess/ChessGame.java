@@ -41,6 +41,9 @@ public class ChessGame {
         BLACK
     }
 
+    /**
+     * Creates a copy of the current chess board for checking valid moves.
+     */
     private ChessBoard makeBoardCopy() {
         ChessBoard copyBoard = new ChessBoard();
         for (int x = 1; x < 9; x++) {
@@ -117,6 +120,21 @@ public class ChessGame {
         }
     }
 
+    ChessPosition findTheKing(TeamColor teamColor) {
+        ChessPiece currentPiece;
+        for (int x = 1; x < 9; x++) {
+            for (int y = 1; y < 9; y++) {
+                currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
+                if (currentPiece != null && currentPiece.getPieceType() == ChessPiece.PieceType.KING &&
+                        currentPiece.getTeamColor() == teamColor) {
+                    return new ChessPosition(x,y);
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Determines if the given team is in check
      *
@@ -124,18 +142,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPosition kingPosition = null;
+        ChessPosition kingPosition = findTheKing(teamColor);
         ChessPiece currentPiece;
-        for (int x = 1; x < 9; x++) {
-            for (int y = 1; y < 9; y++) {
-                currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
-                if (currentPiece != null && currentPiece.getPieceType() == ChessPiece.PieceType.KING &&
-                        currentPiece.getTeamColor() == teamColor) {
-                    kingPosition = new ChessPosition(x,y);
-                }
-            }
-        }
-
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
                 currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
