@@ -66,17 +66,22 @@ public class ChessGame {
         Collection<ChessMove> validMoveList = new ArrayList<>();
         Collection<ChessMove> pieceMoveList = currentBoard.getPiece(startPosition).pieceMoves(currentBoard, startPosition);
         ChessBoard copyBoard = makeBoardCopy();
-        for (ChessMove move : pieceMoveList) {
-            currentBoard.addPiece(move.getEndPosition(), copyBoard.getPiece(startPosition));
-            currentBoard.addPiece(startPosition, null);
-            if (!isInCheck(currentTeam)) {
-                validMoveList.add(move);
+        if (currentBoard.getPiece(startPosition) != null) {
+            for (ChessMove move : pieceMoveList) {
+                currentBoard.addPiece(move.getEndPosition(), copyBoard.getPiece(startPosition));
+                currentBoard.addPiece(startPosition, null);
+                if (!isInCheck(copyBoard.getPiece(startPosition).getTeamColor())) {
+                    validMoveList.add(move);
+                }
+
+                currentBoard = copyBoard;
+                copyBoard = makeBoardCopy();
             }
 
-            currentBoard = copyBoard;
+            return validMoveList;
+        } else {
+            return null;
         }
-
-        return validMoveList;
     }
 
     /**
@@ -98,7 +103,6 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = null;
         ChessPiece currentPiece;
-        boolean checkStatus = false;
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
                 currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
@@ -118,15 +122,14 @@ public class ChessGame {
                     for (ChessMove pos : currentPieceMoves) {
                         assert kingPosition != null;
                         if (pos.getEndPosition().getColumn() == kingPosition.getColumn() && pos.getEndPosition().getRow() == kingPosition.getRow()) {
-                            checkStatus = true;
-                            break;
+                            return true;
                         }
                     }
                 }
             }
         }
 
-        return checkStatus;
+        return false;
     }
 
     /**
