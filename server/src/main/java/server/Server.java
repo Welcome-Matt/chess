@@ -57,7 +57,8 @@ public class Server {
         }
     }
 
-    public void clear(Context ctx) {
+    public void clear(Context ctx) throws DataAccessException {
+        userService.clear();
         ctx.status(200);
     }
 }

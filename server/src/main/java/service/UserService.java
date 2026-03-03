@@ -28,4 +28,8 @@ public class UserService {
         return new LoginResult(user.username(), user.password());
     }
     //public void logout(LogoutRequest logoutRequest) {}
+
+    public void clear() throws DataAccessException {
+        userData.clearUserData();
+    }
 }
