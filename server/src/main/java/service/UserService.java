@@ -5,12 +5,12 @@ import dataaccess.UserDAO;
 import model.UserData;
 
 public class UserService {
-
     private final UserDAO userData;
 
     public UserService(UserDAO userData) {
         this.userData = userData;
     }
+
     public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
         if (userData.getUser(registerRequest.username()) == null) {
             UserData user = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
