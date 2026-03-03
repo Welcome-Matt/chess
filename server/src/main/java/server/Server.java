@@ -1,15 +1,26 @@
 package server;
 
 import Handler.RegisterHandler;
+import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.MemoryUserDAO;
 import io.javalin.*;
 import io.javalin.http.Context;
+import service.UserService;
+
+import java.util.Map;
 
 public class Server {
 
+    private final UserService userService;
     private final Javalin javalin;
 
     public Server() {
+        this(new UserService(new MemoryUserDAO()));
+    }
+
+    public Server(UserService userService) {
+        this.userService = userService;
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
             .post("/user", this::register)
             //.post("/session", this::login)
@@ -32,9 +43,13 @@ public class Server {
         javalin.stop();
     }
 
-    public void register(Context ctx) throws DataAccessException {
-         ctx.result(new RegisterHandler(ctx).getRegistered());
-         ctx.status(200);
+    public void register(Context ctx) {
+        try {
+            ctx.result(new RegisterHandler(ctx, userService).getRegistered());
+            ctx.status(200);
+        } catch (DataAccessException ex) {
+            ctx.status(403).result(new Gson().toJson(Map.of("message",ex.getMessage())));
+        }
     }
 
     public void clear(Context ctx) {
