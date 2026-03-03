@@ -18,11 +18,7 @@ public class RegisterHandler {
 
     public String getRegistered() throws DataAccessException {
         RegisterRequest request = new Gson().fromJson(ctx.body(), RegisterRequest.class);
-
-        //UserService service = new UserService();
         RegisterResult result = userService.register(request);
-
-
         return new Gson().toJson(result);
     }
 }

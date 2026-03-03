@@ -48,7 +48,12 @@ public class Server {
             ctx.result(new RegisterHandler(ctx, userService).getRegistered());
             ctx.status(200);
         } catch (DataAccessException ex) {
-            ctx.status(403).result(new Gson().toJson(Map.of("message",ex.getMessage())));
+            String error = ex.getMessage();
+            if (error.equals("Error: already taken")) {
+                ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            } else if (error.equals("Error: bad request")) {
+                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            }
         }
     }
 

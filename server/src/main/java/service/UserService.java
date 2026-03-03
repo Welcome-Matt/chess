@@ -12,12 +12,14 @@ public class UserService {
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
-        if (userData.getUser(registerRequest.username()) == null) {
+        if (registerRequest.email() == null || registerRequest.password() == null) {
+            throw new DataAccessException("Error: bad request");
+        } else if (userData.getUser(registerRequest.username()) == null) {
             UserData user = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
             userData.createUser(user);
             return new RegisterResult(user.username(), user.password());
         } else {
-            throw new DataAccessException("Error: username already taken");
+            throw new DataAccessException("Error: already taken");
         }
     }
 
