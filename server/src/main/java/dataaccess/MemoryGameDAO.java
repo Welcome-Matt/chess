@@ -3,6 +3,7 @@ package dataaccess;
 import chess.ChessGame;
 import model.GameData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MemoryGameDAO implements GameDAO {
@@ -19,8 +20,13 @@ public class MemoryGameDAO implements GameDAO {
         return games.get(gameId);
     }
 
-    public void listGame() {
+    public ArrayList<GameData> listGame() {
+        ArrayList<GameData> gameList = new ArrayList<>();
+        for(int key : games.keySet()) {
+            gameList.add(games.get(key));
+        }
 
+        return gameList;
     }
 
     public void updateGame(int gameId, String playerColor, String username) throws DataAccessException {

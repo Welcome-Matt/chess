@@ -6,7 +6,6 @@ import io.javalin.http.Context;
 import service.GameRequest;
 import service.GameResult;
 import service.GameService;
-import service.UserRequest;
 
 public class GameHandler {
     public Context ctx;
@@ -18,8 +17,8 @@ public class GameHandler {
     }
 
     public String getGameList() throws DataAccessException {
-
-        return null;
+        GameResult result = gameService.listGames();
+        return new Gson().toJson(result);
     }
 
     public String createGame() throws DataAccessException {
@@ -32,6 +31,4 @@ public class GameHandler {
         GameRequest request = new Gson().fromJson(ctx.body(), GameRequest.class);
         gameService.joinGame(request, authToken);
     }
-
-
 }

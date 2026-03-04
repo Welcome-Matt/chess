@@ -5,6 +5,8 @@ import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import model.GameData;
 
+import java.util.ArrayList;
+
 public class GameService {
     private final AuthDAO authData;
     private final GameDAO gameData;
@@ -14,12 +16,9 @@ public class GameService {
         this.authData = authData;
     }
 
-    public void listGames(String authToken) throws DataAccessException {
-        if (authData.getAuth(authToken) == null) {
-            throw new DataAccessException("Error: unauthorized");
-        }
-
-
+    public GameResult listGames() throws DataAccessException {
+        ArrayList<GameData> gameList = gameData.listGame();
+        return new GameResult(null, gameList);
     }
 
     public GameResult createGame(GameRequest request) throws DataAccessException {
@@ -32,7 +31,14 @@ public class GameService {
     }
 
     public void joinGame(GameRequest request, String authToken) throws DataAccessException {
-        gameData.updateGame(request.gameID(), request.playerColor(), authData.getAuth(authToken).username());
+        if (request.playerColor() != null &&
+                (request.playerColor().equals("WHITE") ||
+                request.playerColor().equals("BLACK")) &&
+                gameData.getGame(request.gameID()) != null) {
+            gameData.updateGame(request.gameID(), request.playerColor(), authData.getAuth(authToken).username());
+        } else {
+            throw new DataAccessException("Error: bad request");
+        }
     }
 
     public void clear() throws DataAccessException {

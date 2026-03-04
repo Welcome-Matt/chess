@@ -84,6 +84,7 @@ public class Server {
         try {
             String authToken = ctx.header("authorization");
             gameService.authenticate(authToken);
+            ctx.result(new GameHandler(ctx, gameService).getGameList());
             ctx.status(200);
         } catch (DataAccessException ex) {
             ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
