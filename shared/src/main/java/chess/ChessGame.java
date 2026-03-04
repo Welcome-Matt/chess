@@ -151,7 +151,7 @@ public class ChessGame {
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
                 currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
-                if (CheckHelper(currentPiece, teamColor, kingPosition, x, y)) {
+                if (checkHelper(currentPiece, teamColor, kingPosition, x, y)) {
                     return true;
                 }
             }
@@ -160,7 +160,7 @@ public class ChessGame {
         return false;
     }
 
-    private boolean CheckHelper(ChessPiece currPiece, TeamColor teamColor, ChessPosition kingPosition, int x, int y) {
+    private boolean checkHelper(ChessPiece currPiece, TeamColor teamColor, ChessPosition kingPosition, int x, int y) {
         if (currPiece != null &&
                 currPiece.getTeamColor() != teamColor) {
             Collection<ChessMove> currentPieceMoves = currPiece.pieceMoves(currentBoard, new ChessPosition(x,y));
