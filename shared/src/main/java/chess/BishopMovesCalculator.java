@@ -3,69 +3,80 @@ package chess;
 import java.util.ArrayList;
 
 public class BishopMovesCalculator {
-    
+
+    ArrayList<ChessMove> bishopList;
+    int row;
+    int col;
+    int newRow;
+    int newCol;
+    ChessGame.TeamColor color;
+
     public ArrayList<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessMove> bishopMoves = new ArrayList<>();
-        int bishopRow = myPosition.getRow() + 1;
-        int bishopCol = myPosition.getColumn() + 1;
-        while(bishopRow < 9 && bishopCol < 9) {
-            if(board.getPiece(new ChessPosition(bishopRow, bishopCol)) == null) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                bishopRow++;
-                bishopCol++;
-            } else if (board.getPiece(new ChessPosition(bishopRow, bishopCol)).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                break;
-            } else {
+        row = myPosition.getRow();
+        col = myPosition.getColumn();
+        color = board.getPiece(myPosition).getTeamColor();
+        bishopList = new ArrayList<>();
+
+        newRow = row + 1;
+        newCol = col + 1;
+        while ((newRow < 9 && newCol < 9) && (board.getPiece(new ChessPosition(newRow, newCol)) == null ||
+                board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color)) {
+            bishopMove();
+            if (board.getPiece(new ChessPosition(newRow, newCol)) != null &&
+                    board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color) {
                 break;
             }
+
+            newRow++;
+            newCol++;
         }
 
-        bishopRow = myPosition.getRow() - 1;
-        bishopCol = myPosition.getColumn() + 1;
-        while(bishopRow > 0 && bishopCol < 9) {
-            if(board.getPiece(new ChessPosition(bishopRow, bishopCol)) == null) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                bishopRow--;
-                bishopCol++;
-            } else if (board.getPiece(new ChessPosition(bishopRow, bishopCol)).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                break;
-            } else {
+        newRow = row - 1;
+        newCol = col + 1;
+        while ((newRow > 0 && newCol < 9) && (board.getPiece(new ChessPosition(newRow, newCol)) == null ||
+                board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color)) {
+            bishopMove();
+            if (board.getPiece(new ChessPosition(newRow, newCol)) != null &&
+                    board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color) {
                 break;
             }
+
+            newRow--;
+            newCol++;
         }
 
-        bishopRow = myPosition.getRow() + 1;
-        bishopCol = myPosition.getColumn() - 1;
-        while(bishopRow < 9 && bishopCol > 0) {
-            if(board.getPiece(new ChessPosition(bishopRow, bishopCol)) == null) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                bishopRow++;
-                bishopCol--;
-            } else if (board.getPiece(new ChessPosition(bishopRow, bishopCol)).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                break;
-            } else {
+        newRow = row + 1;
+        newCol = col - 1;
+        while ((newRow < 9 && newCol > 0) && (board.getPiece(new ChessPosition(newRow, newCol)) == null ||
+                board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color)) {
+            bishopMove();
+            if (board.getPiece(new ChessPosition(newRow, newCol)) != null &&
+                    board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color) {
                 break;
             }
+
+            newRow++;
+            newCol--;
         }
 
-        bishopRow = myPosition.getRow() - 1;
-        bishopCol = myPosition.getColumn() - 1;
-        while(bishopRow > 0 && bishopCol > 0) {
-            if(board.getPiece(new ChessPosition(bishopRow, bishopCol)) == null) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                bishopRow--;
-                bishopCol--;
-            } else if (board.getPiece(new ChessPosition(bishopRow, bishopCol)).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                bishopMoves.add(new ChessMove(new ChessPosition(myPosition.getRow(), myPosition.getColumn()), new ChessPosition(bishopRow, bishopCol), null));
-                break;
-            } else {
+        newRow = row - 1;
+        newCol = col - 1;
+        while ((newRow > 0 && newCol > 0) && (board.getPiece(new ChessPosition(newRow, newCol)) == null ||
+                board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color)) {
+            bishopMove();
+            if (board.getPiece(new ChessPosition(newRow, newCol)) != null &&
+                    board.getPiece(new ChessPosition(newRow, newCol)).getTeamColor() != color) {
                 break;
             }
+
+            newRow--;
+            newCol--;
         }
 
-        return bishopMoves;
+        return bishopList;
+    }
+
+    private void bishopMove() {
+        bishopList.add(new ChessMove(new ChessPosition(row, col), new ChessPosition(newRow, newCol), null));
     }
 }
