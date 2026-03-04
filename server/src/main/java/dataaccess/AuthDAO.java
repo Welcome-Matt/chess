@@ -10,4 +10,6 @@ public interface AuthDAO {
     AuthData getAuthByUser(String username) throws DataAccessException;
 
     void deleteAuth(AuthData auth) throws DataAccessException;
+
+    void clearAuthData() throws DataAccessException;
 }

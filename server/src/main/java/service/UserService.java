@@ -44,9 +44,11 @@ public class UserService {
         }
 
     }
+
     //public void logout(LogoutRequest logoutRequest) {}
 
     public void clear() throws DataAccessException {
         userData.clearUserData();
+        authData.clearAuthData();
     }
 }
