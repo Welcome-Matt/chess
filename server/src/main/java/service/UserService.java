@@ -21,8 +21,8 @@ public class UserService {
         } else if (userData.getUser(registerRequest.username()) == null) {
             UserData user = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
             userData.createUser(user);
-            authData.createAuth(user.username());
-            return new UserResult(user.username(), authData.getAuthByUser(user.username()).authToken());
+            String authToken = authData.createAuth(user.username());
+            return new UserResult(user.username(), authToken);
         } else {
             throw new DataAccessException("Error: already taken");
         }
@@ -36,9 +36,8 @@ public class UserService {
         UserData user = userData.getUser(loginRequest.username());
         if (user != null && user.password().equals(loginRequest.password())) {
             AuthData auth = authData.getAuthByUser(user.username());
-            authData.deleteAuth(auth);
-            authData.createAuth(user.username());
-            return new UserResult(user.username(), authData.getAuthByUser(user.username()).authToken());
+            String authToken = authData.createAuth(user.username());
+            return new UserResult(user.username(), authToken);
         } else {
             throw new DataAccessException("Error: unauthorized");
         }

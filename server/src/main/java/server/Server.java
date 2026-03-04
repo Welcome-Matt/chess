@@ -41,8 +41,7 @@ public class Server {
 
     public void register(Context ctx) {
         try {
-            ctx.result(new UserHandler(ctx, userService).getRegistered());
-            ctx.status(200);
+            ctx.status(200).result(new UserHandler(ctx, userService).getRegistered());
         } catch (DataAccessException ex) {
             exception(ex, ctx);
         }
@@ -50,8 +49,7 @@ public class Server {
 
     public void login(Context ctx) {
         try {
-            ctx.result(new UserHandler(ctx, userService).getLoggedIn());
-            ctx.status(200);
+            ctx.status(200).result(new UserHandler(ctx, userService).getLoggedIn());
         } catch (DataAccessException ex) {
             exception(ex, ctx);
         }
@@ -71,8 +69,7 @@ public class Server {
         try {
             String authToken = ctx.header("authorization");
             gameService.authenticate(authToken);
-            ctx.result(new GameHandler(ctx, gameService).getGameList());
-            ctx.status(200);
+            ctx.status(200).result(new GameHandler(ctx, gameService).getGameList());
         } catch (DataAccessException ex) {
             exception(ex, ctx);
         }
