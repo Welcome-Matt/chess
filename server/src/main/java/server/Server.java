@@ -1,33 +1,31 @@
 package server;
 
+import Handler.GameHandler;
 import Handler.UserHandler;
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
+import service.GameService;
 import service.UserService;
 
 import java.util.Map;
 
 public class Server {
-
-    private final UserService userService;
+    UserDAO userDAO = new MemoryUserDAO();
+    AuthDAO authDAO = new MemoryAuthDAO();
+    GameDAO gameDAO = new MemoryGameDAO();
+    private final UserService userService = new UserService(userDAO, authDAO);
+    private final GameService gameService = new GameService(gameDAO, authDAO);
     private final Javalin javalin;
 
     public Server() {
-        this(new UserService(new MemoryUserDAO(), new MemoryAuthDAO()));
-    }
-
-    public Server(UserService userService) {
-        this.userService = userService;
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
             .post("/user", this::register)
             .post("/session", this::login)
             .delete("/session", this::logout)
-            //.get("/game", this::listGames)
-            //.post("/game", this::createGame)
+            .get("/game", this::listGames)
+            .post("/game", this::createGame)
             //.put("/game", this::joinGame)
             .delete("/db", this::clear);
 
@@ -79,6 +77,32 @@ public class Server {
             ctx.status(200);
         } catch (DataAccessException ex) {
             ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+        }
+    }
+
+    public void listGames(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            gameService.authenticate(authToken);
+            ctx.status(200);
+        } catch (DataAccessException ex) {
+            ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+        }
+    }
+
+    public void createGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            gameService.authenticate(authToken);
+            ctx.result(new GameHandler(ctx, gameService).createGame());
+            ctx.status(200);
+        } catch (DataAccessException ex) {
+            String error = ex.getMessage();
+            if (error.equals("Error: unauthorized")) {
+                ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            } else if (error.equals("Error: bad request")) {
+                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            }
         }
     }
 
