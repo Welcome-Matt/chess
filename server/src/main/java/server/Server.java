@@ -1,7 +1,7 @@
 package server;
 
-import Handler.GameHandler;
-import Handler.UserHandler;
+import handler.GameHandler;
+import handler.UserHandler;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.*;
@@ -28,9 +28,6 @@ public class Server {
             .post("/game", this::createGame)
             .put("/game", this::joinGame)
             .delete("/db", this::clear);
-
-        // Register your endpoints and exception handlers here.
-
     }
 
     public int run(int desiredPort) {
@@ -47,12 +44,7 @@ public class Server {
             ctx.result(new UserHandler(ctx, userService).getRegistered());
             ctx.status(200);
         } catch (DataAccessException ex) {
-            String error = ex.getMessage();
-            if (error.equals("Error: already taken")) {
-                ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            } else if (error.equals("Error: bad request")) {
-                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            }
+            exception(ex, ctx);
         }
     }
 
@@ -61,12 +53,7 @@ public class Server {
             ctx.result(new UserHandler(ctx, userService).getLoggedIn());
             ctx.status(200);
         } catch (DataAccessException ex) {
-            String error = ex.getMessage();
-            if (error.equals("Error: unauthorized")) {
-                ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            } else if (error.equals("Error: bad request")) {
-                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            }
+            exception(ex, ctx);
         }
     }
 
@@ -76,7 +63,7 @@ public class Server {
             userService.logout(authToken);
             ctx.status(200);
         } catch (DataAccessException ex) {
-            ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            exception(ex, ctx);
         }
     }
 
@@ -87,7 +74,7 @@ public class Server {
             ctx.result(new GameHandler(ctx, gameService).getGameList());
             ctx.status(200);
         } catch (DataAccessException ex) {
-            ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            exception(ex, ctx);
         }
     }
 
@@ -98,12 +85,7 @@ public class Server {
             ctx.result(new GameHandler(ctx, gameService).createGame());
             ctx.status(200);
         } catch (DataAccessException ex) {
-            String error = ex.getMessage();
-            if (error.equals("Error: unauthorized")) {
-                ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            } else if (error.equals("Error: bad request")) {
-                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            }
+            exception(ex, ctx);
         }
     }
 
@@ -114,14 +96,7 @@ public class Server {
             new GameHandler(ctx, gameService).joinGame(authToken);
             ctx.status(200);
         } catch (DataAccessException ex) {
-            String error = ex.getMessage();
-            if (error.equals("Error: unauthorized")) {
-                ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            } else if (error.equals("Error: bad request")) {
-                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            } else if (error.equals("Error: already taken")) {
-                ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
-            }
+            exception(ex, ctx);
         }
     }
 
@@ -129,5 +104,15 @@ public class Server {
         userService.clear();
         gameService.clear();
         ctx.status(200);
+    }
+
+    private void exception(DataAccessException ex, Context ctx) {
+        String error = ex.getMessage();
+        switch (error) {
+            case "Error: unauthorized" -> ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            case "Error: bad request" -> ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            case "Error: already taken" ->
+                    ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+        }
     }
 }
