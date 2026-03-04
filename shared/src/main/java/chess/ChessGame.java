@@ -151,16 +151,24 @@ public class ChessGame {
         for (int x = 1; x < 9; x++) {
             for (int y = 1; y < 9; y++) {
                 currentPiece = currentBoard.getPiece(new ChessPosition(x,y));
-                if (currentPiece != null &&
-                        currentPiece.getTeamColor() != teamColor) {
-                    Collection<ChessMove> currentPieceMoves = currentPiece.pieceMoves(currentBoard, new ChessPosition(x,y));
-                    for (ChessMove pos : currentPieceMoves) {
-                        assert kingPosition != null;
-                        if (pos.getEndPosition().getColumn() == kingPosition.getColumn() &&
-                                pos.getEndPosition().getRow() == kingPosition.getRow()) {
-                            return true;
-                        }
-                    }
+                if (CheckHelper(currentPiece, teamColor, kingPosition, x, y)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean CheckHelper(ChessPiece currPiece, TeamColor teamColor, ChessPosition kingPosition, int x, int y) {
+        if (currPiece != null &&
+                currPiece.getTeamColor() != teamColor) {
+            Collection<ChessMove> currentPieceMoves = currPiece.pieceMoves(currentBoard, new ChessPosition(x,y));
+            for (ChessMove pos : currentPieceMoves) {
+                assert kingPosition != null;
+                if (pos.getEndPosition().getColumn() == kingPosition.getColumn() &&
+                        pos.getEndPosition().getRow() == kingPosition.getRow()) {
+                    return true;
                 }
             }
         }
