@@ -23,11 +23,23 @@ public class MemoryGameDAO implements GameDAO {
 
     }
 
-    public void updateGame() {
+    public void updateGame(int gameId, String playerColor, String username) throws DataAccessException {
+        GameData game = games.get(gameId);
+        if (playerColor.equals("WHITE") && game.whiteUsername() == null) {
+            GameData gameUpdate = new GameData(gameId, username, game.blackUsername(), game.gameName(),  game.game());
+            games.remove(gameId);
+            games.put(gameId, gameUpdate);
+        } else if (playerColor.equals("BLACK") && game.blackUsername() == null) {
+            GameData gameUpdate = new GameData(gameId, game.whiteUsername(), username, game.gameName(),  game.game());
+            games.remove(gameId);
+            games.put(gameId, gameUpdate);
+        } else {
+            throw new DataAccessException("Error: already taken");
+        }
 
     }
 
     public void clearGames() {
-
+        games.clear();
     }
 }

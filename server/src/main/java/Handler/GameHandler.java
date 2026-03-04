@@ -28,9 +28,9 @@ public class GameHandler {
         return new Gson().toJson(result);
     }
 
-    public String joinGame() throws DataAccessException {
-
-        return null;
+    public void joinGame(String authToken) throws DataAccessException {
+        GameRequest request = new Gson().fromJson(ctx.body(), GameRequest.class);
+        gameService.joinGame(request, authToken);
     }
 
 

@@ -31,6 +31,14 @@ public class GameService {
         return new GameResult(game.gameID(), null);
     }
 
+    public void joinGame(GameRequest request, String authToken) throws DataAccessException {
+        gameData.updateGame(request.gameID(), request.playerColor(), authData.getAuth(authToken).username());
+    }
+
+    public void clear() throws DataAccessException {
+        gameData.clearGames();
+    }
+
     public void authenticate(String authToken) throws DataAccessException {
         if (authData.getAuth(authToken) == null) {
             throw new DataAccessException("Error: unauthorized");

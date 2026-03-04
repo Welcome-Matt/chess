@@ -26,7 +26,7 @@ public class Server {
             .delete("/session", this::logout)
             .get("/game", this::listGames)
             .post("/game", this::createGame)
-            //.put("/game", this::joinGame)
+            .put("/game", this::joinGame)
             .delete("/db", this::clear);
 
         // Register your endpoints and exception handlers here.
@@ -106,8 +106,27 @@ public class Server {
         }
     }
 
+    public void joinGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            gameService.authenticate(authToken);
+            new GameHandler(ctx, gameService).joinGame(authToken);
+            ctx.status(200);
+        } catch (DataAccessException ex) {
+            String error = ex.getMessage();
+            if (error.equals("Error: unauthorized")) {
+                ctx.status(401).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            } else if (error.equals("Error: bad request")) {
+                ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            } else if (error.equals("Error: already taken")) {
+                ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            }
+        }
+    }
+
     public void clear(Context ctx) throws DataAccessException {
         userService.clear();
+        gameService.clear();
         ctx.status(200);
     }
 }
