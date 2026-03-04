@@ -3,7 +3,6 @@ package service;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
-import model.AuthData;
 import model.UserData;
 
 public class UserService {
@@ -35,7 +34,7 @@ public class UserService {
 
         UserData user = userData.getUser(loginRequest.username());
         if (user != null && user.password().equals(loginRequest.password())) {
-            AuthData auth = authData.getAuthByUser(user.username());
+            authData.getAuthByUser(user.username());
             String authToken = authData.createAuth(user.username());
             return new UserResult(user.username(), authToken);
         } else {

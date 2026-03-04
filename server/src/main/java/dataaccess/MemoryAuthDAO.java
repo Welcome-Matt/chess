@@ -7,7 +7,7 @@ import java.util.UUID;
 public class MemoryAuthDAO implements AuthDAO {
     private final HashMap<String, AuthData> auths = new HashMap<>();
 
-    public String createAuth(String username) throws DataAccessException {
+    public String createAuth(String username) {
         String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken, username);
         auths.put(auth.authToken(), auth);
@@ -27,16 +27,14 @@ public class MemoryAuthDAO implements AuthDAO {
             index++;
         }
 
-
-
         return null;
     }
 
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken) {
         return auths.get(authToken);
     }
 
-    public void deleteAuth(AuthData auth) throws DataAccessException {
+    public void deleteAuth(AuthData auth) {
         auths.remove(auth.authToken());
     }
 

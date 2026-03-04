@@ -55,7 +55,7 @@ public class Server {
         }
     }
 
-    public void logout(Context ctx) throws DataAccessException {
+    public void logout(Context ctx) {
         try {
             String authToken = ctx.header("authorization");
             userService.logout(authToken);
