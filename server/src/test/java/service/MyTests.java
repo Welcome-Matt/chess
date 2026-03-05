@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.*;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ public class MyTests {
     GameDAO gameDAO = new MemoryGameDAO();
 
     final UserService userService = new UserService(userDAO, authDAO);
+    final GameService gameService = new GameService(gameDAO, authDAO);
     UserRequest userRequest = new UserRequest("MrMan", "coolPassword", "email@me.com");
 
     @BeforeEach
@@ -51,7 +53,61 @@ public class MyTests {
 
     @Test
     void logout() throws DataAccessException {
+        UserResult result  = userService.register(userRequest);
+        userService.logout(result.authToken());
+        assertNull(authDAO.getAuthByUser(userRequest.username()));
+    }
+
+    @Test
+    void badLogout() throws DataAccessException {
         userService.register(userRequest);
+        assertThrows(DataAccessException.class, () -> userService.logout("badAuth"));
+    }
+
+    @Test
+    void listGames() throws DataAccessException {
+        gameService.createGame(new GameRequest("newGame", null, 0));
+        gameService.createGame(new GameRequest("anotherGame", null, 0));
+        assertEquals(2, gameService.listGames().games().size());
+
+    }
+
+    @Test
+    void badListGames() throws DataAccessException {
+        assertThrows(DataAccessException.class, () ->
+                gameService.createGame(new GameRequest(null, null, 0)));
+    }
+
+    @Test
+    void createGame() throws DataAccessException {
+        gameService.createGame(new GameRequest("newGame", null, 0));
+        assertEquals(1, gameService.listGames().games().size());
+    }
+
+    @Test
+    void badCreateGame() throws DataAccessException {
+        assertThrows(DataAccessException.class, () ->
+                gameService.createGame(new GameRequest(null, null, 0)));
+    }
+
+    @Test
+    void joinGame() throws DataAccessException {
+        UserResult userResult  = userService.register(userRequest);
+        GameResult gameResult = gameService.createGame(new GameRequest("newGame", null, 0));
+        gameDAO.getGame(gameResult.gameID());
+        gameService.joinGame(new GameRequest(null, "WHITE", gameResult.gameID()),
+                authDAO.getAuthByUser(userRequest.username()).authToken());
+        GameData game = gameDAO.getGame(gameResult.gameID());
+        assertEquals(game.whiteUsername(), userResult.username());
+    }
+
+    @Test
+    void badJoinGame() throws DataAccessException {
+        userService.register(userRequest);
+        GameResult gameResult = gameService.createGame(new GameRequest("newGame", null, 0));
+        assertThrows(DataAccessException.class, () ->
+                gameService.joinGame(new GameRequest(null, null, gameResult.gameID()),
+                        authDAO.getAuthByUser(userRequest.username()).authToken()));
     }
 
     @Test
