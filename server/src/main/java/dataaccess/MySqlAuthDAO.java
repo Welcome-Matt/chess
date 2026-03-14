@@ -26,7 +26,7 @@ public class MySqlAuthDAO implements AuthDAO {
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, username FROM auth WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)){
-                ps.setString(2, username);
+                ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         String SqlAuthToken = rs.getString("authToken");
@@ -64,7 +64,7 @@ public class MySqlAuthDAO implements AuthDAO {
 
     public void deleteAuth(AuthData auth) throws DataAccessException {
         var statement = "DELETE FROM auth WHERE authToken=?";
-        Update.executeUpdate(statement, auth);
+        Update.executeUpdate(statement, auth.authToken());
     }
 
     public void clearAuthData() throws DataAccessException {
