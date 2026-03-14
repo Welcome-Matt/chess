@@ -15,7 +15,7 @@ public class MySqlUserDAO implements UserDAO {
     public void createUser(UserData user) throws DataAccessException {
         String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        executeUpdate(statement, user.username(), hashedPassword, user.email());
+        Update.executeUpdate(statement, user.username(), hashedPassword, user.email());
     }
 
     public UserData getUser(String username) throws DataAccessException {
@@ -41,30 +41,7 @@ public class MySqlUserDAO implements UserDAO {
 
     public void clearUserData() throws DataAccessException {
         var statement = "TRUNCATE user";
-        executeUpdate(statement);
-    }
-
-    private String executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                }
-
-                ps.executeUpdate();
-
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getString(1);
-                }
-
-                return "Hello";
-            }
-
-        } catch (SQLException ex) {
-            throw new DataAccessException("Error: unable to update database");
-        }
+        Update.executeUpdate(statement);
     }
 
     private final String[] createStatements = {
