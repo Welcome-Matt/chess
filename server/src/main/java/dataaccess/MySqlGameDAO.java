@@ -2,16 +2,12 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import model.AuthData;
 import model.GameData;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import static dataaccess.Update.executeUpdate;
 
 public class MySqlGameDAO implements GameDAO {
     private int nextId = 1;
@@ -67,15 +63,13 @@ public class MySqlGameDAO implements GameDAO {
     }
 
     public void updateGame(int gameId, String playerColor, String username) throws DataAccessException {
-        GameData game = games.get(gameId);
+        GameData game = getGame(gameId);
         if (playerColor.equals("WHITE") && game.whiteUsername() == null) {
-            GameData gameUpdate = new GameData(gameId, username, game.blackUsername(), game.gameName(),  game.game());
-            games.remove(gameId);
-            games.put(gameId, gameUpdate);
+            var statement = "UPDATE game SET whiteUsername=? WHERE gameId=?";
+            Update.executeUpdate(statement, username, gameId);
         } else if (playerColor.equals("BLACK") && game.blackUsername() == null) {
-            GameData gameUpdate = new GameData(gameId, game.whiteUsername(), username, game.gameName(),  game.game());
-            games.remove(gameId);
-            games.put(gameId, gameUpdate);
+            var statement = "UPDATE game SET blackUsername=? WHERE gameId=?";
+            Update.executeUpdate(statement, username, gameId);
         } else {
             throw new DataAccessException("Error: already taken");
         }

@@ -17,7 +17,7 @@ public class MySqlAuthDAO implements AuthDAO {
     public String createAuth(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
         AuthData auth = new AuthData(authToken, username);
-        var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         Update.executeUpdate(statement, auth.authToken(), auth.username());
         return authToken;
     }
