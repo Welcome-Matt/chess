@@ -18,7 +18,7 @@ public class MySqlGameDAO implements GameDAO {
 
     public GameData createGame(String gameName) throws DataAccessException {
         int gameID = nextId;
-        var statement = "INSERT INTO game (gameID, gameName, json) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO games (gameID, gameName, json) VALUES (?, ?, ?)";
         String json = new Gson().toJson(new ChessGame());
         Update.executeUpdate(statement, gameID, gameName, json);
         ChessGame game = new Gson().fromJson(json, ChessGame.class);
@@ -26,11 +26,11 @@ public class MySqlGameDAO implements GameDAO {
         return new GameData(gameID, null, null, gameName, game);
     }
 
-    public GameData getGame(int gameId) throws DataAccessException {
+    public GameData getGame(int gameID) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM user WHERE gameID=?";
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM games WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setInt(1, gameId);
+                ps.setInt(1, gameID);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return readGame(rs);
@@ -38,7 +38,7 @@ public class MySqlGameDAO implements GameDAO {
                 }
             }
         } catch (Exception ex) {
-            throw new DataAccessException("Error: unauthorized");
+            throw new DataAccessException("Error: unable to read data");
         }
 
         return null;
@@ -47,7 +47,7 @@ public class MySqlGameDAO implements GameDAO {
     public ArrayList<GameData> listGame() throws DataAccessException {
         ArrayList<GameData> gameList = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM user WHERE gameID=?";
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM games WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -56,7 +56,7 @@ public class MySqlGameDAO implements GameDAO {
                 }
             }
         } catch (Exception ex) {
-            throw new DataAccessException("Error: unauthorized");
+            throw new DataAccessException("Error: unable to read data");
         }
 
         return gameList;
@@ -65,10 +65,10 @@ public class MySqlGameDAO implements GameDAO {
     public void updateGame(int gameId, String playerColor, String username) throws DataAccessException {
         GameData game = getGame(gameId);
         if (playerColor.equals("WHITE") && game.whiteUsername() == null) {
-            var statement = "UPDATE game SET whiteUsername=? WHERE gameId=?";
+            var statement = "UPDATE games SET whiteUsername=? WHERE gameID=?";
             Update.executeUpdate(statement, username, gameId);
         } else if (playerColor.equals("BLACK") && game.blackUsername() == null) {
-            var statement = "UPDATE game SET blackUsername=? WHERE gameId=?";
+            var statement = "UPDATE games SET blackUsername=? WHERE gameID=?";
             Update.executeUpdate(statement, username, gameId);
         } else {
             throw new DataAccessException("Error: already taken");
@@ -76,7 +76,7 @@ public class MySqlGameDAO implements GameDAO {
     }
 
     public void clearGames() throws DataAccessException {
-        var statement = "TRUNCATE game";
+        var statement = "TRUNCATE games";
         Update.executeUpdate(statement);
     }
 
@@ -92,7 +92,7 @@ public class MySqlGameDAO implements GameDAO {
 
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS game (
+            CREATE TABLE IF NOT EXISTS games (
               `gameID` int NOT NULL,
               `whiteUsername` varchar(256) DEFAULT NULL,
               `blackUsername` varchar(256) DEFAULT NULL,
