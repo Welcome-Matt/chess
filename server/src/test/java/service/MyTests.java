@@ -5,28 +5,41 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MyTests {
-    UserDAO userDAO = new MemoryUserDAO();
-    AuthDAO authDAO = new MemoryAuthDAO();
-    GameDAO gameDAO = new MemoryGameDAO();
-
-    final UserService userService = new UserService(userDAO, authDAO);
-    final GameService gameService = new GameService(gameDAO, authDAO);
+    UserDAO userDAO;
+    AuthDAO authDAO;
+    GameDAO gameDAO;
+    UserService userService;
+    GameService gameService;
     UserRequest userRequest = new UserRequest("MrMan", "coolPassword", "email@me.com");
+
+    public MyTests() {
+        try {
+            userDAO = new MySqlUserDAO();
+            authDAO = new MySqlAuthDAO();
+            gameDAO = new MySqlGameDAO();
+            userService = new UserService(userDAO, authDAO);
+            gameService = new GameService(gameDAO, authDAO);
+        } catch (Throwable ex) {
+            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+        }
+    }
 
     @BeforeEach
     void clear() throws DataAccessException {
         userService.clear();
+        gameService.clear();
     }
 
     @Test
     void register() throws DataAccessException {
         userService.register(userRequest);
-        assertEquals(new UserData("MrMan", "coolPassword",
-                "email@me.com"), userDAO.getUser("MrMan"));
+        String hashedPassword = userDAO.getUser("MrMan").password();
+        assertTrue(BCrypt.checkpw(userRequest.password(),hashedPassword));
     }
 
     @Test
