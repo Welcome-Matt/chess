@@ -12,14 +12,24 @@ import service.UserService;
 import java.util.Map;
 
 public class Server {
-    UserDAO userDAO = new MemoryUserDAO();
-    AuthDAO authDAO = new MemoryAuthDAO();
-    GameDAO gameDAO = new MemoryGameDAO();
-    private final UserService userService = new UserService(userDAO, authDAO);
-    private final GameService gameService = new GameService(gameDAO, authDAO);
+    UserDAO userDAO;
+    AuthDAO authDAO;
+    GameDAO gameDAO;
+    UserService userService;
+    GameService gameService;
     private final Javalin javalin;
 
     public Server() {
+        try {
+            userDAO = new MySqlUserDAO();
+            authDAO = new MySqlAuthDAO();
+            gameDAO = new MySqlGameDAO();
+            userService = new UserService(userDAO, authDAO);
+            gameService = new GameService(gameDAO, authDAO);
+        } catch (Throwable ex) {
+            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+        }
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
             .post("/user", this::register)
             .post("/session", this::login)
