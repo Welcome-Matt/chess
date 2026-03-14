@@ -108,9 +108,13 @@ public class Server {
     }
 
     public void clear(Context ctx) throws DataAccessException {
-        userService.clear();
-        gameService.clear();
-        ctx.status(200);
+        try {
+            userService.clear();
+            gameService.clear();
+            ctx.status(200);
+        } catch (DataAccessException ex) {
+            exception(ex, ctx);
+        }
     }
 
     private void exception(DataAccessException ex, Context ctx) {
