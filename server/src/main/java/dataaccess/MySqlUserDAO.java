@@ -25,7 +25,7 @@ public class MySqlUserDAO implements UserDAO {
                         String SqlUsername = rs.getString("username");
                         String SqlPassword = rs.getString("password");
                         String SqlEmail = rs.getString("email");
-                        return new UserData(SqlUsername, SqlPassword,SqlEmail);
+                        return new UserData(SqlUsername, SqlPassword, SqlEmail);
                     }
                 }
             }
