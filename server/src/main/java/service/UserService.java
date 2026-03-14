@@ -4,6 +4,7 @@ import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
     private final UserDAO userData;
@@ -33,7 +34,7 @@ public class UserService {
         }
 
         UserData user = userData.getUser(loginRequest.username());
-        if (user != null && user.password().equals(loginRequest.password())) {
+        if (user != null && BCrypt.checkpw(loginRequest.password(), user.password())) {
             authData.getAuthByUser(user.username());
             String authToken = authData.createAuth(user.username());
             return new UserResult(user.username(), authToken);

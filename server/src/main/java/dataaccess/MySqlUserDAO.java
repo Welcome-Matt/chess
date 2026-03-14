@@ -1,6 +1,8 @@
 package dataaccess;
 
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.*;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -11,8 +13,9 @@ public class MySqlUserDAO implements UserDAO {
     }
 
     public void createUser(UserData user) throws DataAccessException {
+        String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        executeUpdate(statement, user.username(), user.password(), user.email());
+        executeUpdate(statement, user.username(), hashedPassword, user.email());
     }
 
     public UserData getUser(String username) throws DataAccessException {
