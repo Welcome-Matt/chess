@@ -120,6 +120,7 @@ public class Server {
             case "Error: bad request" -> ctx.status(400).result(new Gson().toJson(Map.of("message", ex.getMessage())));
             case "Error: already taken" ->
                     ctx.status(403).result(new Gson().toJson(Map.of("message", ex.getMessage())));
+            default -> ctx.status(500).result(new Gson().toJson(Map.of("message", ex.getMessage())));
         }
     }
 }

@@ -24,7 +24,7 @@ public class MySqlAuthDAO implements AuthDAO {
 
     public AuthData getAuthByUser(String username) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, username FROM user WHERE username=?";
+            var statement = "SELECT authToken, username FROM auth WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)){
                 ps.setString(2, username);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -36,7 +36,7 @@ public class MySqlAuthDAO implements AuthDAO {
                 }
             }
         } catch (Exception ex) {
-            throw new DataAccessException("Error: unauthorized");
+            throw new DataAccessException("Error: unable to read data");
         }
 
         return null;
@@ -44,7 +44,7 @@ public class MySqlAuthDAO implements AuthDAO {
 
     public AuthData getAuth(String authToken) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, username FROM user WHERE authToken=?";
+            var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)){
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -56,7 +56,7 @@ public class MySqlAuthDAO implements AuthDAO {
                 }
             }
         } catch (Exception ex) {
-            throw new DataAccessException("Error: unauthorized");
+            throw new DataAccessException("Error: unable to read data");
         }
 
         return null;
