@@ -2,9 +2,12 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import model.AuthData;
 import model.GameData;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -27,14 +30,37 @@ public class MySqlGameDAO implements GameDAO {
         return new GameData(gameID, null, null, gameName, game);
     }
 
-    public GameData getGame(int gameId) {
-        return games.get(gameId);
+    public GameData getGame(int gameId) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM user WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readGame(rs);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        return null;
     }
 
-    public ArrayList<GameData> listGame() {
+    public ArrayList<GameData> listGame() throws DataAccessException {
         ArrayList<GameData> gameList = new ArrayList<>();
-        for(int key : games.keySet()) {
-            gameList.add(games.get(key));
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM user WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        gameList.add(readGame(rs));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException("Error: unauthorized");
         }
 
         return gameList;
@@ -55,8 +81,19 @@ public class MySqlGameDAO implements GameDAO {
         }
     }
 
-    public void clearGames() {
-        games.clear();
+    public void clearGames() throws DataAccessException {
+        var statement = "TRUNCATE game";
+        Update.executeUpdate(statement);
+    }
+
+    private GameData readGame(ResultSet rs) throws SQLException {
+        int SqlGameId = rs.getInt("gameID");
+        String SqlWhite = rs.getString("whiteUsername");
+        String SqlBlack = rs.getString("blackUsername");
+        String SqlName = rs.getString("gameName");
+        String SqlJson = rs.getString("json");
+        ChessGame game = new Gson().fromJson(SqlJson, ChessGame.class);
+        return new GameData(SqlGameId, SqlWhite, SqlBlack, SqlName, game);
     }
 
     private final String[] createStatements = {
