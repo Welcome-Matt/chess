@@ -81,13 +81,13 @@ public class MySqlGameDAO implements GameDAO {
     }
 
     private GameData readGame(ResultSet rs) throws SQLException {
-        int SqlGameId = rs.getInt("gameID");
-        String SqlWhite = rs.getString("whiteUsername");
-        String SqlBlack = rs.getString("blackUsername");
-        String SqlName = rs.getString("gameName");
-        String SqlJson = rs.getString("json");
-        ChessGame game = new Gson().fromJson(SqlJson, ChessGame.class);
-        return new GameData(SqlGameId, SqlWhite, SqlBlack, SqlName, game);
+        int sqlGameId = rs.getInt("gameID");
+        String sqlWhite = rs.getString("whiteUsername");
+        String sqlBlack = rs.getString("blackUsername");
+        String sqlName = rs.getString("gameName");
+        String sqlJson = rs.getString("json");
+        ChessGame game = new Gson().fromJson(sqlJson, ChessGame.class);
+        return new GameData(sqlGameId, sqlWhite, sqlBlack, sqlName, game);
     }
 
     private final String[] createStatements = {
@@ -104,15 +104,6 @@ public class MySqlGameDAO implements GameDAO {
     };
 
     private void configureGameDAO() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("Error: database failed");
-        }
+        Update.configureDAO(createStatements);
     }
 }

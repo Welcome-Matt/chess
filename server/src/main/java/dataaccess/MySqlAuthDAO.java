@@ -29,9 +29,9 @@ public class MySqlAuthDAO implements AuthDAO {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        String SqlAuthToken = rs.getString("authToken");
-                        String SqlUsername = rs.getString("username");
-                        return new AuthData(SqlAuthToken, SqlUsername);
+                        String sqlAuthToken = rs.getString("authToken");
+                        String sqlUsername = rs.getString("username");
+                        return new AuthData(sqlAuthToken, sqlUsername);
                     }
                 }
             }
@@ -49,9 +49,9 @@ public class MySqlAuthDAO implements AuthDAO {
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        String SqlAuthToken = rs.getString("authToken");
-                        String SqlUsername = rs.getString("username");
-                        return new AuthData(SqlAuthToken, SqlUsername);
+                        String sqlAuthToken = rs.getString("authToken");
+                        String sqlUsername = rs.getString("username");
+                        return new AuthData(sqlAuthToken, sqlUsername);
                     }
                 }
             }
@@ -83,15 +83,6 @@ public class MySqlAuthDAO implements AuthDAO {
     };
 
     private void configureAuthDAO() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("Error: database failed");
-        }
+        Update.configureDAO(createStatements);
     }
 }

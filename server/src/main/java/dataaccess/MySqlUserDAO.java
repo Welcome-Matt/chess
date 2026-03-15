@@ -2,9 +2,7 @@ package dataaccess;
 
 import model.*;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.sql.*;
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class MySqlUserDAO implements UserDAO {
 
@@ -25,10 +23,10 @@ public class MySqlUserDAO implements UserDAO {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        String SqlUsername = rs.getString("username");
-                        String SqlPassword = rs.getString("password");
-                        String SqlEmail = rs.getString("email");
-                        return new UserData(SqlUsername, SqlPassword, SqlEmail);
+                        String sqlUsername = rs.getString("username");
+                        String sqlPassword = rs.getString("password");
+                        String sqlEmail = rs.getString("email");
+                        return new UserData(sqlUsername, sqlPassword, sqlEmail);
                     }
                 }
             }
@@ -57,15 +55,6 @@ public class MySqlUserDAO implements UserDAO {
     };
 
     private void configureUserDAO() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("Error: database failed");
-        }
+        Update.configureDAO(createStatements);
     }
 }
