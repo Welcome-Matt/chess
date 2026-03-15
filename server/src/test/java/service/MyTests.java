@@ -125,12 +125,10 @@ public class MyTests {
 
     @Test
     void clearDb() throws DataAccessException {
-        authDAO.createAuth("ham");
-        userDAO.createUser(new UserData("MrMan", "goodPassword", "email@me.com"));
-        gameDAO.createGame("coolGame");
-        authDAO.clearAuthData();
-        userDAO.clearUserData();
-        gameDAO.clearGames();
+        userService.register(userRequest);
+        gameService.createGame(new GameRequest("newGame", null, 0));
+        userService.clear();
+        gameService.clear();
         assertNull(authDAO.getAuthByUser("ham"));
         assertNull(userDAO.getUser("MrMan"));
         assertTrue(gameDAO.listGame().isEmpty());
