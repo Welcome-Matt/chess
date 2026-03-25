@@ -1,6 +1,8 @@
 package client;
 
 import chess.*;
+import ui.ChessUi;
+
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
@@ -17,7 +19,10 @@ public class ClientMain {
 
             try {
                 result = line;
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                if (result.equals("board")) {
+                    ChessUi.main(new ChessBoard());
+                }
+
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
