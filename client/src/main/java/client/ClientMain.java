@@ -98,17 +98,30 @@ public class ClientMain {
                 break;
             case "list":
                 ArrayList<GameData> gameList = server.listGame(authToken).games();
-                int i = 1;
-                games = new HashMap<>();
-                for (GameData game : gameList) {
-                    games.put(i, game);
-                    System.out.print(i + ". Name: " + game.gameName() +
-                            " - White Player: " + game.whiteUsername() +
-                            " - Black Player: " + game.blackUsername() + "\n");
-                    i++;
+                if (gameList.isEmpty()) {
+                    System.out.print("There are no games. Try to \"create\" some.\n");
+                } else {
+                    int i = 1;
+                    games = new HashMap<>();
+                    for (GameData game : gameList) {
+                        games.put(i, game);
+                        System.out.print(i + ". Name: " + game.gameName() +
+                                " - White Player: " + game.whiteUsername() +
+                                " - Black Player: " + game.blackUsername() + "\n");
+                        i++;
+                    }
                 }
+
                 break;
             case "join":
+                if (games.isEmpty()) {
+                    System.out.print("Please \"list\" the games first!\n");
+                } else if (params.length >= 2) {
+                    server.joinGame(new GameRequest(null, params[1],
+                            games.get(Integer.valueOf(params[0])).gameID()), authToken);
+                    System.out.print("Joined game " + params[0] + "\n");
+                }
+
                 break;
             case "observe":
                 break;
