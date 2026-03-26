@@ -20,7 +20,7 @@ public class ClientMain {
             try {
                 result = line;
                 if (result.equals("board")) {
-                    ChessUi.main(new ChessBoard());
+                    ChessUi.main(new ChessBoard(), "White");
                 }
 
             } catch (Throwable e) {

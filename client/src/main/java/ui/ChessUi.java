@@ -7,27 +7,30 @@ import static ui.EscapeSequences.*;
 
 public class ChessUi {
 
-    private static final int BOARD_SIZE_IN_SQUARES = 10;
-    private static final int SQUARE_SIZE_IN_PADDED_CHARS = 3;
-
-    public static void main(ChessBoard board) {
+    public static void main(ChessBoard board, String team) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
 
-        drawHeaders(out);
-        drawChessBoard(out);
-        drawHeaders(out);
+        drawHeaders(out, team);
+        drawChessBoard(out, team);
+        drawHeaders(out, team);
 
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
     }
 
-    private static void drawHeaders(PrintStream out) {
+    private static void drawHeaders(PrintStream out, String team) {
+        String[] header;
         setDarkGreen(out);
         out.print("   ");
-        String[] header = {"a", "b", "c", "d", "e", "f", "g", "h"};
-        for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES - 2; ++boardCol) {
+        if (team.equals("White")) {
+            header = new String[]{"a", "b", "c", "d", "e", "f", "g", "h"};
+        } else {
+            header = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
+        }
+
+        for (int boardCol = 0; boardCol < header.length; ++boardCol) {
             printHeaderText(out, header[boardCol]);
         }
 
@@ -45,8 +48,12 @@ public class ChessUi {
         setDarkGreen(out);
     }
 
-    private static void drawChessBoard(PrintStream out) {
+    private static void drawChessBoard(PrintStream out, String team) {
         int sideNum = 8;
+        if (team.equals("Black")) {
+            sideNum = 1;
+        }
+
         for (int boardRow = 0; boardRow < 8; ++boardRow) {
             printNum(out, sideNum);
 
@@ -59,7 +66,12 @@ public class ChessUi {
             printNum(out, sideNum);
             resetColor(out);
             out.println();
-            sideNum--;
+
+            if (team.equals("Black")) {
+                sideNum++;
+            } else {
+                sideNum--;
+            }
         }
     }
 
