@@ -3,6 +3,7 @@ package client;
 import chess.*;
 import exception.ResponseException;
 import model.UserRequest;
+import model.UserResult;
 import server.ServerFacade;
 import ui.ChessUi;
 
@@ -68,7 +69,11 @@ public class ClientMain {
                 System.out.print(server.register(new UserRequest(params[0], params[1], params[2])));
                 break;
             case "login":
-                status = "LOGGED_IN";
+                if (params.length == 2) {
+                    UserResult userResult = server.login(new UserRequest(params[0], params[1], "email"));
+                    status = "LOGGED_IN";
+                    System.out.print(userResult);
+                }
                 break;
             case "quit":
                 break;

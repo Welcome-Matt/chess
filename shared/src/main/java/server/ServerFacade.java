@@ -26,8 +26,10 @@ public class ServerFacade {
         return handleResponse(response, UserResult.class);
     }
 
-    public void login(String[] params) {
-
+    public UserResult login(UserRequest requestClient) throws ResponseException {
+        var request = buildRequest("POST", "/session", requestClient);
+        var response = sendRequest(request);
+        return handleResponse(response, UserResult.class);
     }
 
     public void logout() {
@@ -72,7 +74,7 @@ public class ServerFacade {
         try {
             return client.send(request, BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
+            throw new ResponseException(ex.getMessage());
         }
     }
 
@@ -84,7 +86,7 @@ public class ServerFacade {
                 throw ResponseException.fromJson(body);
             }
 
-            throw new ResponseException(ResponseException.fromHttpStatusCode(status), "other failure: " + status);
+            throw new ResponseException("other failure: " + status);
         }
 
         if (responseClass != null) {
