@@ -15,6 +15,7 @@ public class ClientMain {
 
     private static ServerFacade server = new ServerFacade("http://localhost:8080");
     private static String status = "LOGGED_OUT";
+    private static String authToken;
 
     public ClientMain(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -51,8 +52,7 @@ public class ClientMain {
                 }
 
             } catch (Throwable e) {
-                var msg = e.toString();
-                System.out.print(msg);
+                System.out.print(e.getMessage());
             }
         }
     }
@@ -66,14 +66,18 @@ public class ClientMain {
                 ChessUi.main(new ChessBoard(), "Black");
                 break;
             case "register":
-                System.out.print(server.register(new UserRequest(params[0], params[1], params[2])));
+                UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
+                System.out.print(regResult.username() + " has been registered");
                 break;
             case "login":
                 if (params.length == 2) {
                     UserResult userResult = server.login(new UserRequest(params[0], params[1], "email"));
                     status = "LOGGED_IN";
-                    System.out.print(userResult);
+                    authToken = userResult.authToken();
+                } else {
+                    System.out.print("Invalid login format!\n");
                 }
+
                 break;
             case "quit":
                 break;
@@ -82,7 +86,7 @@ public class ClientMain {
         }
     }
 
-    private static void postUi(String cmd, String[] params) {
+    private static void postUi(String cmd, String[] params) throws ResponseException {
         switch (cmd) {
             case "create":
                 ChessUi.main(new ChessBoard(), "White");
@@ -95,7 +99,9 @@ public class ClientMain {
             case "observe":
                 break;
             case "logout":
+                server.logout(authToken);
                 status = "LOGGED_OUT";
+                System.out.print("You have been logged out\n");
                 break;
             default:
                 postHelp();
