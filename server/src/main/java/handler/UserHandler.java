@@ -2,8 +2,8 @@ package handler;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
-import service.UserRequest;
-import service.UserResult;
+import model.UserRequest;
+import model.UserResult;
 import service.UserService;
 import io.javalin.http.Context;
 

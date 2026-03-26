@@ -4,6 +4,8 @@ import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import model.GameData;
+import model.GameRequest;
+import model.GameResult;
 
 import java.util.ArrayList;
 

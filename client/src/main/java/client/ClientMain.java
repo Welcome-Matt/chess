@@ -1,6 +1,9 @@
 package client;
 
 import chess.*;
+import exception.ResponseException;
+import model.UserRequest;
+import server.ServerFacade;
 import ui.ChessUi;
 
 import java.util.Arrays;
@@ -9,9 +12,18 @@ import static ui.EscapeSequences.*;
 
 public class ClientMain {
 
-    static String status = "LOGGED_OUT";
+    private static ServerFacade server = new ServerFacade("http://localhost:8080");
+    private static String status = "LOGGED_OUT";
+
+    public ClientMain(String serverUrl) {
+        server = new ServerFacade(serverUrl);
+    }
 
     public static void main(String[] args) {
+        run();
+    }
+
+    public static void run() {
         System.out.println("♕ 240 Chess Client: Type \"help\" to get a list of commands.");
 
         Scanner scanner = new Scanner(System.in);
@@ -44,7 +56,7 @@ public class ClientMain {
         }
     }
 
-    private static void preUi(String cmd, String[] params) {
+    private static void preUi(String cmd, String[] params) throws ResponseException {
         switch (cmd) {
             case "white":
                 ChessUi.main(new ChessBoard(), "White");
@@ -53,7 +65,7 @@ public class ClientMain {
                 ChessUi.main(new ChessBoard(), "Black");
                 break;
             case "register":
-                System.out.print("You got registered\n");
+                System.out.print(server.register(new UserRequest(params[0], params[1], params[2])));
                 break;
             case "login":
                 status = "LOGGED_IN";
