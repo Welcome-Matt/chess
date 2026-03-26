@@ -2,13 +2,15 @@ package client;
 
 import chess.*;
 import exception.ResponseException;
+import model.GameData;
+import model.GameRequest;
 import model.UserRequest;
 import model.UserResult;
 import server.ServerFacade;
 import ui.ChessUi;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
+
 import static ui.EscapeSequences.*;
 
 public class ClientMain {
@@ -16,6 +18,7 @@ public class ClientMain {
     private static ServerFacade server = new ServerFacade("http://localhost:8080");
     private static String status = "LOGGED_OUT";
     private static String authToken;
+    private static Map<Integer, GameData> games = new HashMap<>();
 
     public ClientMain(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -67,7 +70,9 @@ public class ClientMain {
                 break;
             case "register":
                 UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
-                System.out.print(regResult.username() + " has been registered");
+                status = "LOGGED_IN";
+                authToken = regResult.authToken();
+                System.out.print(regResult.username() + " has been registered\n");
                 break;
             case "login":
                 if (params.length == 2) {
@@ -89,10 +94,19 @@ public class ClientMain {
     private static void postUi(String cmd, String[] params) throws ResponseException {
         switch (cmd) {
             case "create":
-                ChessUi.main(new ChessBoard(), "White");
+                server.createGame(new GameRequest(params[0], null, 0), authToken);
                 break;
             case "list":
-                ChessUi.main(new ChessBoard(), "Black");
+                ArrayList<GameData> gameList = server.listGame(authToken).games();
+                int i = 1;
+                games = new HashMap<>();
+                for (GameData game : gameList) {
+                    games.put(i, game);
+                    System.out.print(i + ". Name: " + game.gameName() +
+                            " - White Player: " + game.whiteUsername() +
+                            " - Black Player: " + game.blackUsername() + "\n");
+                    i++;
+                }
                 break;
             case "join":
                 break;

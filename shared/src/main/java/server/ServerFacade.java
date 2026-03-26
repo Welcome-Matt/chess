@@ -2,6 +2,8 @@ package server;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
+import model.GameRequest;
+import model.GameResult;
 import model.UserRequest;
 import model.UserResult;
 
@@ -38,12 +40,16 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
-    public void createGame() {
-
+    public void createGame(GameRequest gameName, String authToken) throws ResponseException {
+        var request = buildRequest("POST", "/game", gameName, authToken);
+        var response = sendRequest(request);
+        handleResponse(response, GameResult.class);
     }
 
-    public void listGame() {
-
+    public GameResult listGame(String authToken) throws ResponseException {
+        var request = buildRequest("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        return handleResponse(response, GameResult.class);
     }
 
     public void joinGame() {
@@ -60,7 +66,9 @@ public class ServerFacade {
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
-        } else {
+        }
+
+        if (authToken != null) {
             request.setHeader("authorization", authToken);
         }
 
