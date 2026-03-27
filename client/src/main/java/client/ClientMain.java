@@ -55,24 +55,31 @@ public class ClientMain {
                 }
 
             } catch (Throwable e) {
-                System.out.print(e.getMessage());
+                System.out.print(e.getMessage() + "\n");
             }
         }
     }
 
     private static void preUi(String cmd, String[] params) throws ResponseException {
+        ChessBoard board = new ChessBoard();
+        board.resetBoard();
         switch (cmd) {
             case "white":
-                ChessUi.main(new ChessBoard(), "White");
+                ChessUi.main(board, "White");
                 break;
             case "black":
-                ChessUi.main(new ChessBoard(), "Black");
+                ChessUi.main(board, "Black");
                 break;
             case "register":
-                UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
-                status = "LOGGED_IN";
-                authToken = regResult.authToken();
-                System.out.print(regResult.username() + " has been registered\n");
+                if (params.length == 3) {
+                    UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
+                    status = "LOGGED_IN";
+                    authToken = regResult.authToken();
+                    System.out.print(regResult.username() + " has been registered\n");
+                } else {
+                    System.out.print("Invalid \"register\" format!\n");
+                }
+
                 break;
             case "login":
                 if (params.length == 2) {
@@ -80,11 +87,12 @@ public class ClientMain {
                     status = "LOGGED_IN";
                     authToken = userResult.authToken();
                 } else {
-                    System.out.print("Invalid login format!\n");
+                    System.out.print("Invalid \"login\" format!\n");
                 }
 
                 break;
             case "quit":
+                System.out.print("Goodbye!\n");
                 break;
             default:
                 preHelp();
@@ -94,9 +102,19 @@ public class ClientMain {
     private static void postUi(String cmd, String[] params) throws ResponseException {
         switch (cmd) {
             case "create":
-                server.createGame(new GameRequest(params[0], null, 0), authToken);
+                if (params.length == 1) {
+                    server.createGame(new GameRequest(params[0], null, 0), authToken);
+                } else {
+                    System.out.print("Invalid \"create\" format!\n");
+                }
+
                 break;
             case "list":
+                if (params.length > 0) {
+                    System.out.print("Invalid \"list\" format!\n");
+                    break;
+                }
+
                 ArrayList<GameData> gameList = server.listGame(authToken).games();
                 if (gameList.isEmpty()) {
                     System.out.print("There are no games. Try to \"create\" some.\n");
@@ -114,16 +132,10 @@ public class ClientMain {
 
                 break;
             case "join":
-                if (games.isEmpty()) {
-                    System.out.print("Please \"list\" the games first!\n");
-                } else if (params.length >= 2) {
-                    server.joinGame(new GameRequest(null, params[1],
-                            games.get(Integer.valueOf(params[0])).gameID()), authToken);
-                    System.out.print("Joined game " + params[0] + "\n");
-                }
-
+                join(params);
                 break;
             case "observe":
+                observe(params);
                 break;
             case "logout":
                 server.logout(authToken);
@@ -134,6 +146,56 @@ public class ClientMain {
                 postHelp();
         }
     }
+
+    private static void join(String[] params) throws ResponseException {
+        if (games.isEmpty()) {
+            System.out.print("Please \"list\" the games first!\n");
+        } else if (isInteger(params[0])) {
+            int gameNum = Integer.parseInt(params[0]);
+            if (gameNum > params.length || gameNum < params.length) {
+                System.out.print("Please enter a valid game number!\n");
+            } else if (params.length == 2) {
+                server.joinGame(new GameRequest(null, params[1],
+                        games.get(gameNum).gameID()), authToken);
+                System.out.print("Joined game " + params[0] + "\n");
+            } else {
+                System.out.print("Invalid \"join\" format!\n");
+            }
+        } else {
+            System.out.print("Please enter a valid game number!\n");
+        }
+    }
+
+    private static void observe(String[] params) {
+        if (games.isEmpty()) {
+            System.out.print("Please \"list\" the games first!\n");
+        } else if (isInteger(params[0])) {
+            int num = Integer.parseInt(params[0]);
+            if (num > games.size() || num < 1) {
+                System.out.print("Please enter a valid game number!\n");
+            } else if (params.length == 1) {
+                ChessBoard board = games.get(num).game().getBoard();
+                ChessUi.main(board, "White");
+            } else {
+                System.out.print("Invalid \"observe\" format!\n");
+            }
+        } else {
+            System.out.print("Please enter a valid game number!\n");
+        }
+    }
+
+    public static boolean isInteger(String str) {
+        if (str == null) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
 
     private static void preHelp() {
         System.out.print(
