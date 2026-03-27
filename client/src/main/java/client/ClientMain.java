@@ -75,7 +75,7 @@ public class ClientMain {
                     UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
                     status = "LOGGED_IN";
                     authToken = regResult.authToken();
-                    System.out.print(regResult.username() + " has been registered\n");
+                    System.out.print("Welcome " + regResult.username() + ". You have been registered and logged in.\n");
                 } else {
                     System.out.print("Invalid \"register\" format!\n");
                 }
@@ -86,6 +86,7 @@ public class ClientMain {
                     UserResult userResult = server.login(new UserRequest(params[0], params[1], "email"));
                     status = "LOGGED_IN";
                     authToken = userResult.authToken();
+                    System.out.print("Hello " + params[0] + ".\n");
                 } else {
                     System.out.print("Invalid \"login\" format!\n");
                 }
@@ -140,7 +141,7 @@ public class ClientMain {
             case "logout":
                 server.logout(authToken);
                 status = "LOGGED_OUT";
-                System.out.print("You have been logged out\n");
+                System.out.print("You have been logged out.\n");
                 break;
             default:
                 postHelp();
