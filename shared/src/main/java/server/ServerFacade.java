@@ -58,8 +58,13 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
-    public void observeGame() {
+    /*public void observeGame() {
+        for the future I guess
+    }*/
 
+    public void clear() throws ResponseException {
+        var request = buildRequest("DELETE", "/db", null, null);
+        sendRequest(request);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
