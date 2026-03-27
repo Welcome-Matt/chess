@@ -6,7 +6,7 @@ import model.GameData;
 import model.GameRequest;
 import model.UserRequest;
 import model.UserResult;
-import server.ServerFacade;
+import facade.ServerFacade;
 import ui.ChessUi;
 
 import java.util.*;

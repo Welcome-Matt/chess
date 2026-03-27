@@ -1,4 +1,4 @@
-package server;
+package facade;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -57,10 +57,6 @@ public class ServerFacade {
         var response = sendRequest(request);
         handleResponse(response, null);
     }
-
-    /*public void observeGame() {
-        for the future I guess
-    }*/
 
     public void clear() throws ResponseException {
         var request = buildRequest("DELETE", "/db", null, null);

@@ -7,7 +7,7 @@ import model.UserRequest;
 import model.UserResult;
 import org.junit.jupiter.api.*;
 import server.Server;
-import server.ServerFacade;
+import facade.ServerFacade;
 
 import static org.junit.jupiter.api.Assertions.*;
 
