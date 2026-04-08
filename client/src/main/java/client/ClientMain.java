@@ -105,6 +105,7 @@ public class ClientMain {
             case "create":
                 if (params.length == 1) {
                     server.createGame(new GameRequest(params[0], null, 0), authToken);
+                    System.out.print("Created game " + params[0] + "\n");
                 } else {
                     System.out.print("Invalid \"create\" format!\n");
                 }
@@ -124,9 +125,21 @@ public class ClientMain {
                     games = new HashMap<>();
                     for (GameData game : gameList) {
                         games.put(i, game);
-                        System.out.print(i + ". Name: " + game.gameName() +
-                                " - White Player: " + game.whiteUsername() +
-                                " - Black Player: " + game.blackUsername() + "\n");
+                        System.out.print(i + ". Name: " + game.gameName() + " - White Player: ");
+                        if (game.whiteUsername() == null) {
+                            System.out.print("<Space Available>");
+                        } else {
+                            System.out.print(game.whiteUsername());
+                        }
+
+                        System.out.print(" - Black Player: ");
+
+                        if (game.blackUsername() == null) {
+                            System.out.print("<Space Available>\n");
+                        } else {
+                            System.out.print(game.blackUsername() + "\n");
+                        }
+
                         i++;
                     }
                 }
@@ -153,12 +166,13 @@ public class ClientMain {
             System.out.print("Please \"list\" the games first!\n");
         } else if (isInteger(params[0])) {
             int gameNum = Integer.parseInt(params[0]);
-            if (gameNum > params.length || gameNum < params.length) {
+            if (gameNum > games.size() || gameNum < 1) {
                 System.out.print("Please enter a valid game number!\n");
             } else if (params.length == 2) {
                 server.joinGame(new GameRequest(null, params[1],
                         games.get(gameNum).gameID()), authToken);
                 System.out.print("Joined game " + params[0] + "\n");
+                ChessUi.main(games.get(gameNum).game().getBoard(), params[1]);
             } else {
                 System.out.print("Invalid \"join\" format!\n");
             }

@@ -31,7 +31,7 @@ public class ChessUi {
         String[] header;
         setDarkGreen(out);
         out.print("   ");
-        if (team.equals("White")) {
+        if (team.equals("WHITE")) {
             header = new String[]{"a", "b", "c", "d", "e", "f", "g", "h"};
         } else {
             header = new String[]{"h", "g", "f", "e", "d", "c", "b", "a"};
@@ -58,7 +58,7 @@ public class ChessUi {
     private static void drawChessBoard(PrintStream out, String team) {
         int sideNum = 8;
         int boardRow = 7;
-        if (team.equals("Black")) {
+        if (team.equals("BLACK")) {
             sideNum = 1;
             boardRow = 0;
         }
@@ -72,7 +72,7 @@ public class ChessUi {
             resetColor(out);
             out.println();
 
-            if (team.equals("Black")) {
+            if (team.equals("BLACK")) {
                 sideNum++;
                 boardRow++;
             } else {
@@ -84,7 +84,7 @@ public class ChessUi {
 
     private static void drawRowOfSquares(PrintStream out, int boardRow, String team) {
         int boardCol = 0;
-        if (team.equals("Black")) {
+        if (team.equals("BLACK")) {
             boardCol = 7;
         }
 
@@ -105,7 +105,7 @@ public class ChessUi {
             }
 
             drawSquare(out, boardCol, boardRow);
-            if (team.equals("Black")) {
+            if (team.equals("BLACK")) {
                 boardCol--;
             } else {
                 boardCol++;
