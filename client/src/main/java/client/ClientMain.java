@@ -8,20 +8,24 @@ import model.UserRequest;
 import model.UserResult;
 import facade.ServerFacade;
 import ui.ChessUi;
+import client.NotificationHandler;
+import websocket.messages.ServerMessage;
 
 import java.util.*;
 
 import static ui.EscapeSequences.*;
 
-public class ClientMain {
+public class ClientMain implements NotificationHandler {
 
     private static ServerFacade server = new ServerFacade("http://localhost:8080");
+    private final WebSocketFacade ws;
     private static String status = "LOGGED_OUT";
     private static String authToken;
     private static Map<Integer, GameData> games = new HashMap<>();
 
-    public ClientMain(String serverUrl) {
+    public ClientMain(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
+        ws = new WebSocketFacade(serverUrl);
     }
 
     public static void main(String[] args) {
@@ -211,6 +215,9 @@ public class ClientMain {
         }
     }
 
+    public void notify(ServerMessage notification) {
+        System.out.println(notification);
+    }
 
     private static void preHelp() {
         System.out.print(
