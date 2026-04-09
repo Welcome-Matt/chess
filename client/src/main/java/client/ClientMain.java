@@ -18,10 +18,13 @@ import static ui.EscapeSequences.*;
 public class ClientMain implements NotificationHandler {
 
     private static ServerFacade server = new ServerFacade("http://localhost:8080");
-    private final WebSocketFacade ws;
+    private static WebSocketFacade ws;
     private static String status = "LOGGED_OUT";
+    private static int inGame = 0;
     private static String authToken;
     private static Map<Integer, GameData> games = new HashMap<>();
+    private static String currUser;
+    private static int currGameID;
 
     public ClientMain(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
@@ -52,8 +55,11 @@ public class ClientMain implements NotificationHandler {
                     if (cmd.equals("quit")) {
                         result = "Hamburger";
                     }
-
-                    postUi(cmd, params);
+                    if (inGame == 1) {
+                        gameUi(cmd, params);
+                    } else {
+                        postUi(cmd, params);
+                    }
                 } else {
                     preUi(cmd, params);
                 }
@@ -68,18 +74,13 @@ public class ClientMain implements NotificationHandler {
         ChessBoard board = new ChessBoard();
         board.resetBoard();
         switch (cmd) {
-            case "white":
-                ChessUi.main(board, "White");
-                break;
-            case "black":
-                ChessUi.main(board, "Black");
-                break;
             case "register":
                 if (params.length == 3) {
                     UserResult regResult = server.register(new UserRequest(params[0], params[1], params[2]));
                     status = "LOGGED_IN";
                     authToken = regResult.authToken();
                     System.out.print("Welcome " + regResult.username() + ". You have been registered and logged in.\n");
+                    currUser = regResult.username();
                 } else {
                     System.out.print("Invalid \"register\" format!\n");
                 }
@@ -91,6 +92,7 @@ public class ClientMain implements NotificationHandler {
                     status = "LOGGED_IN";
                     authToken = userResult.authToken();
                     System.out.print("Hello " + params[0] + ".\n");
+                    currUser = params[0];
                 } else {
                     System.out.print("Invalid \"login\" format!\n");
                 }
@@ -151,6 +153,7 @@ public class ClientMain implements NotificationHandler {
                 break;
             case "join":
                 join(params);
+                inGame = 1;
                 break;
             case "observe":
                 observe(params);
@@ -159,7 +162,24 @@ public class ClientMain implements NotificationHandler {
                 server.logout(authToken);
                 status = "LOGGED_OUT";
                 System.out.print("You have been logged out.\n");
+                currUser = null;
                 break;
+            default:
+                postHelp();
+        }
+    }
+
+    private static void gameUi(String cmd, String[] params) throws ResponseException {
+        switch (cmd) {
+            case "redraw":
+            case "leave":
+                ws.leaveGame(authToken, currGameID);
+                currGameID = -1;
+            case "move":
+                ws.makeMove(authToken, currGameID);
+            case "resign":
+                ws.resignGame(authToken, currGameID);
+            case "highlight":
             default:
                 postHelp();
         }
@@ -173,10 +193,11 @@ public class ClientMain implements NotificationHandler {
             if (gameNum > games.size() || gameNum < 1) {
                 System.out.print("Please enter a valid game number!\n");
             } else if (params.length == 2) {
-                server.joinGame(new GameRequest(null, params[1],
-                        games.get(gameNum).gameID()), authToken);
+                currGameID = games.get(gameNum).gameID();
+                server.joinGame(new GameRequest(null, params[1], currGameID), authToken);
                 System.out.print("Joined game " + params[0] + "\n");
                 ChessUi.main(games.get(gameNum).game().getBoard(), params[1]);
+                ws.joinGame(authToken, currGameID);
             } else {
                 System.out.print("Invalid \"join\" format!\n");
             }

@@ -29,6 +29,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
                 case CONNECT -> enter(ctx.session);
+                case MAKE_MOVE -> makeMove(ctx.session);
                 case LEAVE, RESIGN -> exit(ctx.session);
             }
         } catch (IOException ex) {
@@ -43,6 +44,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void enter(Session session) throws IOException {
         connections.add(session);
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        connections.broadcast(session, notification);
+    }
+
+    private void makeMove(Session session) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         connections.broadcast(session, notification);
     }
