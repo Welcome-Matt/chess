@@ -25,7 +25,7 @@ public class ClientMain implements NotificationHandler {
 
     public ClientMain(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
-        ws = new WebSocketFacade(serverUrl);
+        ws = new WebSocketFacade(serverUrl, this);
     }
 
     public static void main(String[] args) {

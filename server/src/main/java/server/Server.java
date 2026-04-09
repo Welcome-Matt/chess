@@ -4,7 +4,8 @@ import handler.GameHandler;
 import handler.UserHandler;
 import com.google.gson.Gson;
 import dataaccess.*;
-import io.javalin.*;
+import handler.WebSocketHandler;
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import service.GameService;
 import service.UserService;
@@ -18,6 +19,7 @@ public class Server {
     UserService userService;
     GameService gameService;
     private final Javalin javalin;
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         try {
@@ -30,14 +32,22 @@ public class Server {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }
 
-        javalin = Javalin.create(config -> config.staticFiles.add("web"))
+        webSocketHandler = new WebSocketHandler();
+
+        javalin = Javalin.create(config -> config.staticFiles.add("public"))
             .post("/user", this::register)
             .post("/session", this::login)
             .delete("/session", this::logout)
             .get("/game", this::listGames)
             .post("/game", this::createGame)
             .put("/game", this::joinGame)
-            .delete("/db", this::clear);
+            .delete("/db", this::clear)
+            .ws("/ws", ws -> {
+                ws.onConnect(webSocketHandler);
+                ws.onMessage(webSocketHandler);
+                ws.onClose(webSocketHandler);
+            });
+
     }
 
     public int run(int desiredPort) {
