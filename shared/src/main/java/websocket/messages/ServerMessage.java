@@ -30,6 +30,10 @@ public class ServerMessage {
         this.message = message;
     }
 
+    public String toString() {
+        return message;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

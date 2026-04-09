@@ -34,7 +34,7 @@ public class Server {
 
         webSocketHandler = new WebSocketHandler();
 
-        javalin = Javalin.create(config -> config.staticFiles.add("public"))
+        javalin = Javalin.create(config -> config.staticFiles.add("web"))
             .post("/user", this::register)
             .post("/session", this::login)
             .delete("/session", this::logout)

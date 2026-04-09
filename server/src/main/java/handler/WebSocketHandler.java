@@ -45,16 +45,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void enter(Session session) throws IOException {
         connections.add(session);
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setMessage("Someone has entered!");
         connections.broadcast(session, notification);
     }
 
     private void makeMove(Session session) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setMessage("Someone made a move!");
         connections.broadcast(session, notification);
     }
 
     private void exit(Session session) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setMessage("Someone has left!");
         connections.broadcast(session, notification);
         connections.remove(session);
     }
