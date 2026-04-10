@@ -149,7 +149,12 @@ public class GameClient implements NotificationHandler {
                 ws.makeMove(authToken, currGameID);
                 break;
             case "resign":
-                ws.resignGame(authToken, currGameID);
+                System.out.print("Are you sure you want to admit defeat? (\"yes\" or \"no\"): ");
+                Scanner scanner = new Scanner(System.in);
+                String line = scanner.nextLine();
+                if (line.equals("yes")) {
+                    ws.resignGame(authToken, currGameID);
+                }
                 break;
             case "highlight":
             default:
@@ -180,7 +185,7 @@ public class GameClient implements NotificationHandler {
         }
     }
 
-    private static void observe(String[] params) {
+    private static void observe(String[] params) throws ResponseException {
         if (games.isEmpty()) {
             System.out.print("Please \"list\" the games first!\n");
         } else if (isInteger(params[0])) {
@@ -188,8 +193,12 @@ public class GameClient implements NotificationHandler {
             if (num > games.size() || num < 1) {
                 System.out.print("Please enter a valid game number!\n");
             } else if (params.length == 1) {
-                ChessBoard board = games.get(num).game().getBoard();
-                ChessUi.main(board, "White");
+                int gameNum = Integer.parseInt(params[0]);
+                currGameID = games.get(gameNum).gameID();
+                ws.joinGame(authToken, currGameID, currUser);
+                currUserColor = "OBSERVE";
+                status = "IN_GAME";
+                inGame = 1;
             } else {
                 System.out.print("Invalid \"observe\" format!\n");
             }

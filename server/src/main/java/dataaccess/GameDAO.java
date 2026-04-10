@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.GameData;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public interface GameDAO {
 
     ArrayList<GameData> listGame() throws DataAccessException;
 
-    void updateGame(int gameId, String playerColor, String username) throws DataAccessException;
+    void updateGame(int gameId, String playerColor, String username, ChessGame chess) throws DataAccessException;
 
     void clearGames() throws DataAccessException;
 }

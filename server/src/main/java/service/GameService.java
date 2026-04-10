@@ -37,7 +37,7 @@ public class GameService {
                 (request.playerColor().equals("WHITE") ||
                 request.playerColor().equals("BLACK")) &&
                 gameData.getGame(request.gameID()) != null) {
-            gameData.updateGame(request.gameID(), request.playerColor(), authData.getAuth(authToken).username());
+            gameData.updateGame(request.gameID(), request.playerColor(), authData.getAuth(authToken).username(), null);
         } else {
             throw new DataAccessException("Error: bad request");
         }

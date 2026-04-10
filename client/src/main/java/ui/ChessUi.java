@@ -14,6 +14,10 @@ public class ChessUi {
     private static ChessBoard uiBoard;
 
     public static void main(ChessBoard board, String team) {
+        if (team.equals("OBSERVE")) {
+            team = "WHITE";
+        }
+
         uiBoard = board;
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 

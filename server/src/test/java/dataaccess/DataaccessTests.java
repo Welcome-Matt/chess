@@ -154,7 +154,7 @@ public class DataaccessTests {
     @Test
     void updateGame() throws DataAccessException {
         GameData gameData1 = gameDAO.createGame("newGame");
-        gameDAO.updateGame(gameData1.gameID(), "WHITE", "Mr.Cool");
+        gameDAO.updateGame(gameData1.gameID(), "WHITE", "Mr.Cool", null);
         GameData gameData2 = gameDAO.getGame(gameData1.gameID());
         assertEquals("Mr.Cool", gameData2.whiteUsername());
     }
@@ -162,9 +162,9 @@ public class DataaccessTests {
     @Test
     void badUpdateGame() throws DataAccessException {
         GameData gameData1 = gameDAO.createGame("newGame");
-        gameDAO.updateGame(gameData1.gameID(), "WHITE", "Mr.Cool");
+        gameDAO.updateGame(gameData1.gameID(), "WHITE", "Mr.Cool", null);
         assertThrows(DataAccessException.class, () ->
-                gameDAO.updateGame(gameData1.gameID(), "WHITE", "MR.CoolBro"));
+                gameDAO.updateGame(gameData1.gameID(), "WHITE", "MR.CoolBro", null));
     }
 
     @Test

@@ -38,7 +38,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> enter(ctx.session, command);
                 case MAKE_MOVE -> makeMove(ctx.session, command);
-                case LEAVE, RESIGN -> exit(ctx.session, command);
+                case RESIGN -> resign(ctx.session, command);
+                case LEAVE -> exit(ctx.session, command);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -72,6 +73,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         notification.setMessage(command.getUsername() + " made move ");
         connections.broadcast(session, notification, command.getGameID());
+    }
+
+    private void resign(Session session, UserGameCommand command) throws IOException {
+        try {
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
+            ChessGame game = server.getGame(command.getGameID()).game();
+            game.setTeamTurn(ChessGame.TeamColor.NONE);
+            server.updateGame(command.getGameID(), game);
+            connections.broadcast(session, notification, command.getGameID());
+        } catch (DataAccessException ex) {
+            var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            error.setErrorMessage(ex.getMessage());
+            connections.broadcast(session, error, command.getGameID());
+        }
     }
 
     private void exit(Session session, UserGameCommand command) throws IOException {

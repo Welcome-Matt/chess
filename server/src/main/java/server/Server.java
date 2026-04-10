@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import handler.GameHandler;
 import handler.UserHandler;
 import com.google.gson.Gson;
@@ -124,6 +125,10 @@ public class Server {
 
     public GameData getGame(int gameID) throws DataAccessException {
         return gameDAO.getGame(gameID);
+    }
+
+    public void updateGame(int gameID, ChessGame game) throws DataAccessException {
+        gameDAO.updateGame(gameID, null, null, game);
     }
 
     public void clear(Context ctx) throws DataAccessException {
