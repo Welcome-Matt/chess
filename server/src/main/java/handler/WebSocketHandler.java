@@ -53,30 +53,31 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void enter(Session session, UserGameCommand command) throws IOException {
         try {
             server.authenticate(command.getAuthToken());
-            connections.add(session);
+            connections.add(session, command.getGameID());
             var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            board.setGame(new ChessGame());
-            connections.broadcast(session, board);
+            ChessGame game = server.getGame(command.getGameID()).game();
+            board.setGame(game);
+            connections.broadcast(session, board, command.getGameID());
             var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notification.setMessage(command.getUsername() + " has entered!");
-            connections.broadcast(session, notification);
+            connections.broadcast(session, notification, command.getGameID());
         } catch (DataAccessException ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
             error.setErrorMessage(ex.getMessage());
-            connections.broadcast(session, error);
+            connections.broadcast(session, error, command.getGameID());
         }
     }
 
     private void makeMove(Session session, UserGameCommand command) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage("Someone made a move!");
-        connections.broadcast(session, notification);
+        notification.setMessage(command.getUsername() + " made move ");
+        connections.broadcast(session, notification, command.getGameID());
     }
 
     private void exit(Session session, UserGameCommand command) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         notification.setMessage(command.getUsername() + " has left!");
-        connections.broadcast(session, notification);
-        connections.remove(session);
+        connections.broadcast(session, notification, command.getGameID());
+        connections.remove(session, command.getGameID());
     }
 }

@@ -4,23 +4,31 @@ import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<Session, Session> connections = new ConcurrentHashMap<>();
+    public final HashMap<Integer, ConcurrentHashMap<Session, Session>> connections = new HashMap<>();
 
-    public void add(Session session) {
-        connections.put(session, session);
+    public void add(Session session, int gameID) {
+        if (connections.get(gameID) == null) {
+            ConcurrentHashMap<Session, Session> connect = new ConcurrentHashMap<>();
+            connect.put(session, session);
+            connections.put(gameID, connect);
+        } else {
+            connections.get(gameID).put(session, session);
+        }
     }
 
-    public void remove(Session session) {
-        connections.remove(session);
+    public void remove(Session session, int gameID) {
+        connections.get(gameID).remove(session);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage notification) throws IOException {
+    public void broadcast(Session excludeSession, ServerMessage notification, int gameID) throws IOException {
         String msg = notification.toString();
         if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
-            for (Session c : connections.values()) {
+            ConcurrentHashMap<Session, Session> connection = connections.get(gameID);
+            for (Session c : connection.values()) {
                 if (c.isOpen()) {
                     if (!c.equals(excludeSession)) {
                         c.getRemote().sendString(msg);

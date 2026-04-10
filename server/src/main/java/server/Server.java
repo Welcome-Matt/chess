@@ -7,6 +7,7 @@ import dataaccess.*;
 import handler.WebSocketHandler;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import model.GameData;
 import service.GameService;
 import service.UserService;
 
@@ -119,6 +120,10 @@ public class Server {
 
     public void authenticate(String authToken) throws DataAccessException {
         gameService.authenticate(authToken);
+    }
+
+    public GameData getGame(int gameID) throws DataAccessException {
+        return gameDAO.getGame(gameID);
     }
 
     public void clear(Context ctx) throws DataAccessException {
