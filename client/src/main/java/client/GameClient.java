@@ -27,6 +27,7 @@ public class GameClient implements NotificationHandler {
     private static String currUser;
     private static int currGameID;
     private static String currUserColor;
+    private static ChessBoard currBoard;
 
     public GameClient(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
@@ -139,6 +140,8 @@ public class GameClient implements NotificationHandler {
     private static void gameUi(String cmd, String[] params) throws ResponseException {
         switch (cmd) {
             case "redraw":
+                ChessUi.main(currBoard, currUserColor);
+                break;
             case "leave":
                 ws.leaveGame(authToken, currGameID, currUser);
                 inGame = 0;
@@ -258,6 +261,7 @@ public class GameClient implements NotificationHandler {
             System.out.println(notification.getMessage());
         } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
             System.out.println();
+            currBoard = notification.getGame().getBoard();
             ChessUi.main(notification.getGame().getBoard(), currUserColor);
         }
     }

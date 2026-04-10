@@ -83,7 +83,7 @@ public class MySqlGameDAO implements GameDAO {
         if (chess != null) {
             var statement = "UPDATE games SET json=? WHERE gameID=?";
             String json = new Gson().toJson(chess);
-            Update.executeUpdate(statement, gameId, json);
+            Update.executeUpdate(statement, json, gameId);
         } else if (playerColor.equals("WHITE") && game.whiteUsername() == null) {
             var statement = "UPDATE games SET whiteUsername=? WHERE gameID=?";
             Update.executeUpdate(statement, username, gameId);

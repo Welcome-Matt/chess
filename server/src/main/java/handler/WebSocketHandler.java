@@ -56,8 +56,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             server.authenticate(command.getAuthToken());
             connections.add(session, command.getGameID());
             var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            ChessGame game = server.getGame(command.getGameID()).game();
-            board.setGame(game);
+            try {
+                ChessGame game = server.getGame(command.getGameID()).game();
+                board.setGame(game);
+            } catch (Exception ex) {
+                throw new DataAccessException("Error: Invalid game");
+            }
+
             connections.broadcast(session, board, command.getGameID());
             var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notification.setMessage(command.getUsername() + " has entered!");
