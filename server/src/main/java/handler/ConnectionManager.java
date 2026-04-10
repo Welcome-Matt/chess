@@ -31,16 +31,9 @@ public class ConnectionManager {
             if (excludeSession.isOpen()) {
                 excludeSession.getRemote().sendString(msg);
             }
-        }
-    }
-
-    public void loadBoard(Session session, ServerMessage board) throws IOException {
-        String msg = board.toString();
-        for (Session c : connections.values()) {
-            if (session.isOpen()) {
-                if (c.equals(session)) {
-                    session.getRemote().sendString(msg);
-                }
+        } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+            if (excludeSession.isOpen()) {
+                excludeSession.getRemote().sendString(msg);
             }
         }
     }

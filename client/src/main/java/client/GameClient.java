@@ -26,6 +26,7 @@ public class GameClient implements NotificationHandler {
     private static Map<Integer, GameData> games = new HashMap<>();
     private static String currUser;
     private static int currGameID;
+    private static String currUserColor;
 
     public GameClient(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
@@ -116,38 +117,7 @@ public class GameClient implements NotificationHandler {
 
                 break;
             case "list":
-                if (params.length > 0) {
-                    System.out.print("Invalid \"list\" format!\n");
-                    break;
-                }
-
-                ArrayList<GameData> gameList = server.listGame(authToken).games();
-                if (gameList.isEmpty()) {
-                    System.out.print("There are no games. Try to \"create\" some.\n");
-                } else {
-                    int i = 1;
-                    games = new HashMap<>();
-                    for (GameData game : gameList) {
-                        games.put(i, game);
-                        System.out.print(i + ". Name: " + game.gameName() + " - White Player: ");
-                        if (game.whiteUsername() == null) {
-                            System.out.print("<Space Available>");
-                        } else {
-                            System.out.print(game.whiteUsername());
-                        }
-
-                        System.out.print(" - Black Player: ");
-
-                        if (game.blackUsername() == null) {
-                            System.out.print("<Space Available>\n");
-                        } else {
-                            System.out.print(game.blackUsername() + "\n");
-                        }
-
-                        i++;
-                    }
-                }
-
+                listGames(params);
                 break;
             case "join":
                 join(params);
@@ -170,7 +140,7 @@ public class GameClient implements NotificationHandler {
         switch (cmd) {
             case "redraw":
             case "leave":
-                ws.leaveGame(authToken, currGameID);
+                ws.leaveGame(authToken, currGameID, currUser);
                 inGame = 0;
                 status = "LOGGED_IN";
                 System.out.println("You have left the game.");
@@ -198,8 +168,8 @@ public class GameClient implements NotificationHandler {
                 currGameID = games.get(gameNum).gameID();
                 server.joinGame(new GameRequest(null, params[1], currGameID), authToken);
                 System.out.print("Joined game " + params[0] + "\n");
-                ChessUi.main(games.get(gameNum).game().getBoard(), params[1]);
-                ws.joinGame(authToken, currGameID);
+                ws.joinGame(authToken, currGameID, currUser);
+                currUserColor = params[1];
                 status = "IN_GAME";
                 inGame = 1;
             } else {
@@ -240,8 +210,47 @@ public class GameClient implements NotificationHandler {
         }
     }
 
+    private static void listGames(String[] params) throws ResponseException {
+        if (params.length > 0) {
+            System.out.print("Invalid \"list\" format!\n");
+            return;
+        }
+
+        ArrayList<GameData> gameList = server.listGame(authToken).games();
+        if (gameList.isEmpty()) {
+            System.out.print("There are no games. Try to \"create\" some.\n");
+        } else {
+            int i = 1;
+            games = new HashMap<>();
+            for (GameData game : gameList) {
+                games.put(i, game);
+                System.out.print(i + ". Name: " + game.gameName() + " - White Player: ");
+                if (game.whiteUsername() == null) {
+                    System.out.print("<Space Available>");
+                } else {
+                    System.out.print(game.whiteUsername());
+                }
+
+                System.out.print(" - Black Player: ");
+
+                if (game.blackUsername() == null) {
+                    System.out.print("<Space Available>\n");
+                } else {
+                    System.out.print(game.blackUsername() + "\n");
+                }
+
+                i++;
+            }
+        }
+    }
+
     public void notify(ServerMessage notification) {
-        System.out.println(notification.toString());
+        if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
+            System.out.println(notification.getMessage());
+        } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
+            System.out.println();
+            ChessUi.main(notification.getGame().getBoard(), currUserColor);
+        }
     }
 
     private static void preHelp() {

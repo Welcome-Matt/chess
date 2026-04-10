@@ -1,5 +1,7 @@
 package handler;
 
+import dataaccess.DataAccessException;
+import server.Server;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.websocket.WsCloseContext;
@@ -17,6 +19,11 @@ import java.io.IOException;
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private Server server;
+
+    public WebSocketHandler(Server server) {
+        this.server = server;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -29,9 +36,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
-                case CONNECT -> enter(ctx.session);
-                case MAKE_MOVE -> makeMove(ctx.session);
-                case LEAVE, RESIGN -> exit(ctx.session);
+                case CONNECT -> enter(ctx.session, command);
+                case MAKE_MOVE -> makeMove(ctx.session, command);
+                case LEAVE, RESIGN -> exit(ctx.session, command);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -43,25 +50,32 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    private void enter(Session session) throws IOException {
-        connections.add(session);
-        var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-        board.setGame(new ChessGame());
-        connections.broadcast(session, board);
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage("Someone has entered!");
-        connections.broadcast(session, notification);
+    private void enter(Session session, UserGameCommand command) throws IOException {
+        try {
+            server.authenticate(command.getAuthToken());
+            connections.add(session);
+            var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            board.setGame(new ChessGame());
+            connections.broadcast(session, board);
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notification.setMessage(command.getUsername() + " has entered!");
+            connections.broadcast(session, notification);
+        } catch (DataAccessException ex) {
+            var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            error.setErrorMessage(ex.getMessage());
+            connections.broadcast(session, error);
+        }
     }
 
-    private void makeMove(Session session) throws IOException {
+    private void makeMove(Session session, UserGameCommand command) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         notification.setMessage("Someone made a move!");
         connections.broadcast(session, notification);
     }
 
-    private void exit(Session session) throws IOException {
+    private void exit(Session session, UserGameCommand command) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage("Someone has left!");
+        notification.setMessage(command.getUsername() + " has left!");
         connections.broadcast(session, notification);
         connections.remove(session);
     }

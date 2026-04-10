@@ -32,7 +32,7 @@ public class Server {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }
 
-        webSocketHandler = new WebSocketHandler();
+        webSocketHandler = new WebSocketHandler(this);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
             .post("/user", this::register)
@@ -115,6 +115,10 @@ public class Server {
         } catch (DataAccessException ex) {
             exception(ex, ctx);
         }
+    }
+
+    public void authenticate(String authToken) throws DataAccessException {
+        gameService.authenticate(authToken);
     }
 
     public void clear(Context ctx) throws DataAccessException {

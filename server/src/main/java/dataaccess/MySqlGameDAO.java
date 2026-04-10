@@ -10,20 +10,36 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class MySqlGameDAO implements GameDAO {
-    private int nextId = 1;
 
     public MySqlGameDAO() throws DataAccessException {
         configureGameDAO();
     }
 
     public GameData createGame(String gameName) throws DataAccessException {
-        int gameID = nextId;
-        var statement = "INSERT INTO games (gameID, gameName, json) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO games (gameName, json) VALUES (?, ?)";
         String json = new Gson().toJson(new ChessGame());
-        Update.executeUpdate(statement, gameID, gameName, json);
+        Update.executeUpdate(statement, gameName, json);
         ChessGame game = new Gson().fromJson(json, ChessGame.class);
-        nextId++;
-        return new GameData(gameID, null, null, gameName, game);
+
+        return new GameData(getGameID(gameName).gameID(), null, null, gameName, game);
+    }
+
+    public GameData getGameID(String gameName) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM games WHERE gameName=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, gameName);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readGame(rs);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException("Error: unable to read data");
+        }
+
+        return null;
     }
 
     public GameData getGame(int gameID) throws DataAccessException {
@@ -93,13 +109,13 @@ public class MySqlGameDAO implements GameDAO {
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS games (
-              `gameID` int NOT NULL,
+              `gameID` INT AUTO_INCREMENT NOT NULL,
               `whiteUsername` varchar(256) DEFAULT NULL,
               `blackUsername` varchar(256) DEFAULT NULL,
               `gameName` varchar(256) NOT NULL,
               `json` TEXT NOT NULL,
               PRIMARY KEY (`gameID`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            )
             """
     };
 
