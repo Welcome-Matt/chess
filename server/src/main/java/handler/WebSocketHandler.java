@@ -1,5 +1,6 @@
 package handler;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
@@ -44,6 +45,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void enter(Session session) throws IOException {
         connections.add(session);
+        var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        board.setGame(new ChessGame());
+        connections.broadcast(session, board);
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         notification.setMessage("Someone has entered!");
         connections.broadcast(session, notification);
@@ -61,6 +65,4 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, notification);
         connections.remove(session);
     }
-
-
 }

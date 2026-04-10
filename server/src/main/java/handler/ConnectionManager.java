@@ -19,10 +19,27 @@ public class ConnectionManager {
 
     public void broadcast(Session excludeSession, ServerMessage notification) throws IOException {
         String msg = notification.toString();
+        if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
+            for (Session c : connections.values()) {
+                if (c.isOpen()) {
+                    if (!c.equals(excludeSession)) {
+                        c.getRemote().sendString(msg);
+                    }
+                }
+            }
+        } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
+            if (excludeSession.isOpen()) {
+                excludeSession.getRemote().sendString(msg);
+            }
+        }
+    }
+
+    public void loadBoard(Session session, ServerMessage board) throws IOException {
+        String msg = board.toString();
         for (Session c : connections.values()) {
-            if (c.isOpen()) {
-                if (!c.equals(excludeSession)) {
-                    c.getRemote().sendString(msg);
+            if (session.isOpen()) {
+                if (c.equals(session)) {
+                    session.getRemote().sendString(msg);
                 }
             }
         }
