@@ -13,21 +13,21 @@ public class ConvertMove {
             char c = move.charAt(i);
             if (color.equals("WHITE")) {
                 if (Character.isDigit(c)) {
-                    positions.add(convertNumRev(c));
+                    positions.add(convertNum(c));
                 } else {
                     positions.add(convertChar(c));
                 }
             } else {
                 if (Character.isDigit(c)) {
-                    positions.add(convertNum(c));
+                    positions.add(convertNumRev(c));
                 } else {
                     positions.add(convertCharRev(c));
                 }
             }
         }
 
-        return new ChessMove(new ChessPosition(positions.get(0), positions.get(1)),
-                new ChessPosition(positions.get(2), positions.get(3)), null);
+        return new ChessMove(new ChessPosition(positions.get(1), positions.get(0)),
+                new ChessPosition(positions.get(3), positions.get(2)), null);
     }
 
     private int convertChar(char character) {

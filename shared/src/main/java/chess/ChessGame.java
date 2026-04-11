@@ -109,16 +109,16 @@ public class ChessGame {
                 currentBoard.addPiece(move.getStartPosition(), null);
                 if (currentTeam == TeamColor.WHITE) {
                     currentTeam = TeamColor.BLACK;
-                } else {
+                } else if (currentTeam.equals(TeamColor.BLACK)){
                     currentTeam = TeamColor.WHITE;
                 }
 
             } else {
-                throw new InvalidMoveException("Not a valid move!\n");
+                throw new InvalidMoveException("Error: Not a valid move!\n");
             }
 
         } else {
-            throw new InvalidMoveException("It's not your turn, please wait!\n");
+            throw new InvalidMoveException("Error: It's not your turn, please wait!\n");
         }
     }
 

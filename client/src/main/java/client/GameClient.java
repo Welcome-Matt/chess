@@ -265,6 +265,8 @@ public class GameClient implements NotificationHandler {
             System.out.println();
             currBoard = notification.getGame().getBoard();
             ChessUi.main(notification.getGame().getBoard(), currUserColor);
+        } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+            System.out.print(notification.getErrorMessage());
         }
     }
 

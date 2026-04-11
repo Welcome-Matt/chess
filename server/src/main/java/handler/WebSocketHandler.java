@@ -80,18 +80,34 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             server.authenticate(command.getAuthToken());
             GameData data = server.getGame(command.getGameID());
-            ChessGame game = data.game();
-            game.makeMove(command.getMove());
-            server.updateGame(command.getGameID(), game);
+            String username = server.getAuth(command.getAuthToken()).username();
+            if (!username.equals(data.whiteUsername()) &&
+                    !username.equals(data.blackUsername())) {
+                var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                error.setErrorMessage("Error: Invalid command");
+                connections.broadcast(session, error, command.getGameID());
+            } else {
+                ChessGame game = data.game();
+                ChessGame.TeamColor color = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
+                ChessGame.TeamColor color1 = game.getTeamTurn();
+                if (!game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor().equals(game.getTeamTurn())) {
+                    var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                    error.setErrorMessage("Error: Can\'t move that piece");
+                    connections.broadcast(session, error, command.getGameID());
+                } else {
+                    game.makeMove(command.getMove());
+                    server.updateGame(command.getGameID(), game);
 
-            var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            ChessGame chessGame = server.getGame(command.getGameID()).game();
-            board.setGame(chessGame);
-            connections.broadcastAll(board, command.getGameID());
+                    var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+                    ChessGame chessGame = server.getGame(command.getGameID()).game();
+                    board.setGame(chessGame);
+                    connections.broadcastAll(board, command.getGameID());
 
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            notification.setMessage(command.getUsername() + " made move ");
-            connections.broadcast(session, notification, command.getGameID());
+                    var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                    notification.setMessage(command.getUsername() + " made move ");
+                    connections.broadcast(session, notification, command.getGameID());
+                }
+            }
         } catch (Exception ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
             error.setErrorMessage(ex.getMessage());
@@ -104,7 +120,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             GameData data = server.getGame(command.getGameID());
             if (data.game().getTeamTurn().equals(ChessGame.TeamColor.NONE)) {
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                notification.setErrorMessage("The game has ended.");
+                notification.setErrorMessage("Error: The game has ended.");
                 connections.sendNotification(session, notification);
             } else {
                 String username = server.getAuth(command.getAuthToken()).username();
@@ -113,14 +129,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
                     error.setErrorMessage("Error: Invalid command");
                     connections.broadcast(session, error, command.getGameID());
+                } else {
+                    ChessGame game = data.game();
+                    game.setTeamTurn(ChessGame.TeamColor.NONE);
+                    server.updateGame(command.getGameID(), game);
+                    var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                    notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
+                    connections.broadcastAll(notification, command.getGameID());
                 }
-
-                ChessGame game = data.game();
-                game.setTeamTurn(ChessGame.TeamColor.NONE);
-                server.updateGame(command.getGameID(), game);
-                var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
-                connections.broadcastAll(notification, command.getGameID());
             }
         } catch (DataAccessException ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
