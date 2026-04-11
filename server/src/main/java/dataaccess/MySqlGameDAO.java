@@ -80,7 +80,15 @@ public class MySqlGameDAO implements GameDAO {
 
     public void updateGame(int gameId, String playerColor, String username, ChessGame chess) throws DataAccessException {
         GameData game = getGame(gameId);
-        if (chess != null) {
+        if (chess != null && playerColor != null && username == null) {
+            var statement = "";
+            if (playerColor.equals("WHITE")) {
+                statement = "UPDATE games SET whiteUsername=NULL WHERE gameID=?";
+            } else {
+                statement = "UPDATE games SET whiteUsername=NULL WHERE gameID=?";
+            }
+            Update.executeUpdate(statement, gameId);
+        } else if (chess != null) {
             var statement = "UPDATE games SET json=? WHERE gameID=?";
             String json = new Gson().toJson(chess);
             Update.executeUpdate(statement, json, gameId);

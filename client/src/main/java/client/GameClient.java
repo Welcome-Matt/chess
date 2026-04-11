@@ -151,7 +151,7 @@ public class GameClient implements NotificationHandler {
                 break;
             case "move":
                 ChessMove chessMove = new ConvertMove().main(params[0], currUserColor);
-                ws.makeMove(authToken, currGameID, chessMove);
+                ws.makeMove(authToken, currGameID, chessMove, params[0]);
                 break;
             case "resign":
                 System.out.print("Are you sure you want to admit defeat? (\"yes\" or \"no\"): ");

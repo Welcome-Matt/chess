@@ -52,7 +52,7 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void makeMove(String authToken, int gameID, ChessMove move) throws ResponseException {
+    public void makeMove(String authToken, int gameID, ChessMove move, String strMove) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID);
             command.setMove(move);

@@ -132,6 +132,10 @@ public class Server {
         gameDAO.updateGame(gameID, null, null, game);
     }
 
+    public void removePlayer(int gameID, String username, String color) throws DataAccessException {
+        gameDAO.updateGame(gameID, color, username, new ChessGame());
+    }
+
     public AuthData getAuth(String authToken) throws DataAccessException {
         return authDAO.getAuth(authToken);
     }

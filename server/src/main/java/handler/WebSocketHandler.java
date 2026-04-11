@@ -88,14 +88,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 connections.broadcast(session, error, command.getGameID());
             } else {
                 ChessGame game = data.game();
-                ChessGame.TeamColor color = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
-                ChessGame.TeamColor color1 = game.getTeamTurn();
-                if (!game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor().equals(game.getTeamTurn())) {
+                ChessGame.TeamColor pieceColor = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
+                if (username.equals(data.blackUsername()) && pieceColor.equals(ChessGame.TeamColor.WHITE) ||
+                        username.equals(data.whiteUsername()) && pieceColor.equals(ChessGame.TeamColor.BLACK)) {
                     var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
                     error.setErrorMessage("Error: Can\'t move that piece");
                     connections.broadcast(session, error, command.getGameID());
                 } else {
                     game.makeMove(command.getMove());
+                    if (game.isInCheckmate(ChessGame.TeamColor.WHITE) ||
+                            game.isInCheckmate(ChessGame.TeamColor.BLACK) ||
+                            game.isInStalemate(ChessGame.TeamColor.WHITE) ||
+                            game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+                        game.setTeamTurn(ChessGame.TeamColor.NONE);
+                    }
+
                     server.updateGame(command.getGameID(), game);
 
                     var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
@@ -104,8 +111,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     connections.broadcastAll(board, command.getGameID());
 
                     var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                    notification.setMessage(command.getUsername() + " made move ");
+                    notification.setMessage(command.getUsername() + " made move " + command.getStrMove());
                     connections.broadcast(session, notification, command.getGameID());
+
+                    if (chessGame.getTeamTurn().equals(ChessGame.TeamColor.NONE)) {
+                        notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                        notification.setMessage("GAME OVER!");
+                        connections.broadcastAll(notification, command.getGameID());
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -146,9 +159,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void exit(Session session, UserGameCommand command) throws IOException {
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage(command.getUsername() + " has left!");
-        connections.broadcast(session, notification, command.getGameID());
-        connections.remove(session, command.getGameID());
+        try {
+            GameData gameData = server.getGame(command.getGameID());
+            String username = server.getAuth(command.getAuthToken()).username();
+            if (username.equals(gameData.whiteUsername())) {
+                server.removePlayer(command.getGameID(), null, "WHITE");
+            } else if (username.equals(gameData.blackUsername())) {
+                server.removePlayer(command.getGameID(), null, "BLACK");
+            }
+
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notification.setMessage(command.getUsername() + " has left!");
+            connections.broadcast(session, notification, command.getGameID());
+            connections.remove(session, command.getGameID());
+        } catch (DataAccessException ex) {
+            var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            error.setErrorMessage(ex.getMessage());
+            connections.broadcast(session, error, command.getGameID());
+        }
     }
 }
