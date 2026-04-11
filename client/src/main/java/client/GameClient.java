@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessBoard;
+import chess.ChessMove;
 import exception.ResponseException;
 import facade.ServerFacade;
 import model.GameData;
@@ -149,7 +150,8 @@ public class GameClient implements NotificationHandler {
                 System.out.println("You have left the game.");
                 break;
             case "move":
-                ws.makeMove(authToken, currGameID);
+                ChessMove chessMove = new ConvertMove().main(params[0], currUserColor);
+                ws.makeMove(authToken, currGameID, chessMove);
                 break;
             case "resign":
                 System.out.print("Are you sure you want to admit defeat? (\"yes\" or \"no\"): ");

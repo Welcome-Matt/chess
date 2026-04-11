@@ -1,5 +1,6 @@
 package handler;
 
+import chess.InvalidMoveException;
 import dataaccess.DataAccessException;
 import model.GameData;
 import server.Server;
@@ -76,9 +77,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(Session session, UserGameCommand command) throws IOException {
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage(command.getUsername() + " made move ");
-        connections.broadcast(session, notification, command.getGameID());
+        try {
+            GameData data = server.getGame(command.getGameID());
+            ChessGame game = data.game();
+            game.makeMove(command.getMove());
+            server.updateGame(command.getGameID(), game);
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notification.setMessage(command.getUsername() + " made move ");
+            connections.broadcast(session, notification, command.getGameID());
+        } catch (Exception ex) {
+            var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            error.setErrorMessage(ex.getMessage());
+            connections.broadcast(session, error, command.getGameID());
+        }
     }
 
     private void resign(Session session, UserGameCommand command) throws IOException {
