@@ -45,4 +45,17 @@ public class ConnectionManager {
             }
         }
     }
+
+    public void broadcastAll(ServerMessage board, int gameID) throws IOException {
+        ConcurrentHashMap<Session, Session> connection = connections.get(gameID);
+        for (Session c : connection.values()) {
+            if (c.isOpen()) {
+                c.getRemote().sendString(board.toString());
+            }
+        }
+    }
+
+    public void sendNotification(Session session, ServerMessage notice) throws IOException {
+        session.getRemote().sendString(notice.toString());
+    }
 }

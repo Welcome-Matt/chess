@@ -78,10 +78,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void makeMove(Session session, UserGameCommand command) throws IOException {
         try {
+            server.authenticate(command.getAuthToken());
             GameData data = server.getGame(command.getGameID());
             ChessGame game = data.game();
             game.makeMove(command.getMove());
             server.updateGame(command.getGameID(), game);
+
+            var board = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            ChessGame chessGame = server.getGame(command.getGameID()).game();
+            board.setGame(chessGame);
+            connections.broadcastAll(board, command.getGameID());
+
             var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notification.setMessage(command.getUsername() + " made move ");
             connections.broadcast(session, notification, command.getGameID());
@@ -95,19 +102,26 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void resign(Session session, UserGameCommand command) throws IOException {
         try {
             GameData data = server.getGame(command.getGameID());
-            String username = server.getAuth(command.getAuthToken()).username();
-            if (!username.equals(data.whiteUsername()) ||
-                    !username.equals(data.blackUsername())) {
-                var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                error.setErrorMessage("Error: Invalid command");
-                connections.broadcast(session, error, command.getGameID());
+            if (data.game().getTeamTurn().equals(ChessGame.TeamColor.NONE)) {
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                notification.setErrorMessage("The game has ended.");
+                connections.sendNotification(session, notification);
+            } else {
+                String username = server.getAuth(command.getAuthToken()).username();
+                if (!username.equals(data.whiteUsername()) &&
+                        !username.equals(data.blackUsername())) {
+                    var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                    error.setErrorMessage("Error: Invalid command");
+                    connections.broadcast(session, error, command.getGameID());
+                }
+
+                ChessGame game = data.game();
+                game.setTeamTurn(ChessGame.TeamColor.NONE);
+                server.updateGame(command.getGameID(), game);
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
+                connections.broadcastAll(notification, command.getGameID());
             }
-            ChessGame game = data.game();
-            game.setTeamTurn(ChessGame.TeamColor.NONE);
-            server.updateGame(command.getGameID(), game);
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
-            connections.broadcast(session, notification, command.getGameID());
         } catch (DataAccessException ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
             error.setErrorMessage(ex.getMessage());
