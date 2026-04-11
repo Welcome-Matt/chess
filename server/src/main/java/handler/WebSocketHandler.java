@@ -1,6 +1,7 @@
 package handler;
 
 import dataaccess.DataAccessException;
+import model.GameData;
 import server.Server;
 import chess.ChessGame;
 import com.google.gson.Gson;
@@ -82,11 +83,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resign(Session session, UserGameCommand command) throws IOException {
         try {
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
-            ChessGame game = server.getGame(command.getGameID()).game();
+            GameData data = server.getGame(command.getGameID());
+            String username = server.getAuth(command.getAuthToken()).username();
+            if (!username.equals(data.whiteUsername()) ||
+                    !username.equals(data.blackUsername())) {
+                var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                error.setErrorMessage("Error: Invalid command");
+                connections.broadcast(session, error, command.getGameID());
+            }
+            ChessGame game = data.game();
             game.setTeamTurn(ChessGame.TeamColor.NONE);
             server.updateGame(command.getGameID(), game);
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notification.setMessage(command.getUsername() + " has resigned, GAME OVER!");
             connections.broadcast(session, notification, command.getGameID());
         } catch (DataAccessException ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);

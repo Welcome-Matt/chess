@@ -156,7 +156,7 @@ public class GameClient implements NotificationHandler {
                 Scanner scanner = new Scanner(System.in);
                 String line = scanner.nextLine();
                 if (line.equals("yes")) {
-                    ws.resignGame(authToken, currGameID);
+                    ws.resignGame(authToken, currGameID, currUser);
                 }
                 break;
             case "highlight":
