@@ -42,20 +42,24 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void joinGame(String authToken, int gameID, String currUser) throws ResponseException {
+    public void joinGame(String authToken, int gameID, String currUser, String color) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
             command.setUsername(currUser);
+            command.setStrMove(color);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ex.getMessage());
         }
     }
 
-    public void makeMove(String authToken, int gameID, ChessMove move, String strMove) throws ResponseException {
+    public void makeMove(String authToken, int gameID, ChessMove move,
+                         String strMove, String username) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID);
             command.setMove(move);
+            command.setStrMove(strMove);
+            command.setUsername(username);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ex.getMessage());

@@ -1,16 +1,17 @@
 package client;
 
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.util.ArrayList;
 
 public class ConvertMove {
 
-    public ChessMove main(String move, String color) {
+    public ChessMove main(String[] move, String color) {
         ArrayList<Integer> positions = new ArrayList<>();
-        for (int i = 0; i < move.length(); i++) {
-            char c = move.charAt(i);
+        for (int i = 0; i < move[0].length(); i++) {
+            char c = move[0].charAt(i);
             if (color.equals("WHITE")) {
                 if (Character.isDigit(c)) {
                     positions.add(convertNum(c));
@@ -19,15 +20,37 @@ public class ConvertMove {
                 }
             } else {
                 if (Character.isDigit(c)) {
-                    positions.add(convertNumRev(c));
+                    positions.add(convertNum(c));
                 } else {
-                    positions.add(convertCharRev(c));
+                    positions.add(convertChar(c));
                 }
             }
         }
 
+        ChessPiece.PieceType type;
+        if (move.length == 2) {
+            type = convertType(move[1]);
+        } else {
+            type = null;
+        }
+
         return new ChessMove(new ChessPosition(positions.get(1), positions.get(0)),
-                new ChessPosition(positions.get(3), positions.get(2)), null);
+                new ChessPosition(positions.get(3), positions.get(2)), type);
+    }
+
+    public ChessPosition highLightPiece(String position) {
+        return new ChessPosition(convertNum(position.charAt(1)), convertChar(position.charAt(0)));
+    }
+
+    private ChessPiece.PieceType convertType(String type) {
+        type = type.toUpperCase();
+        return switch (type) {
+            case "ROOK" -> ChessPiece.PieceType.ROOK;
+            case "QUEEN" -> ChessPiece.PieceType.QUEEN;
+            case "BISHOP" -> ChessPiece.PieceType.BISHOP;
+            case "KNIGHT" -> ChessPiece.PieceType.KNIGHT;
+            default -> ChessPiece.PieceType.KING;
+        };
     }
 
     private int convertChar(char character) {

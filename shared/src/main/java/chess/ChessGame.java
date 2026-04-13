@@ -97,7 +97,9 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece currentPiece = currentBoard.getPiece(move.getStartPosition());
-        if (currentPiece != null && currentPiece.getTeamColor() == currentTeam) {
+        if (currentPiece == null) {
+            throw new InvalidMoveException("Error: Can\'t move something that doesn\'t exist");
+        } else if (currentPiece.getTeamColor() == currentTeam) {
             Collection<ChessMove> validPieceMoves = validMoves(move.getStartPosition());
             if (validPieceMoves.contains(move)) {
                 if (currentPiece.getPieceType() == ChessPiece.PieceType.PAWN &&
@@ -114,11 +116,11 @@ public class ChessGame {
                 }
 
             } else {
-                throw new InvalidMoveException("Error: Not a valid move!\n");
+                throw new InvalidMoveException("Error: Not a valid move!");
             }
 
         } else {
-            throw new InvalidMoveException("Error: It's not your turn, please wait!\n");
+            throw new InvalidMoveException("Error: That's not your piece!");
         }
     }
 

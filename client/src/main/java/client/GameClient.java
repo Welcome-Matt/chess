@@ -2,6 +2,7 @@ package client;
 
 import chess.ChessBoard;
 import chess.ChessMove;
+import chess.ChessPosition;
 import exception.ResponseException;
 import facade.ServerFacade;
 import model.GameData;
@@ -51,7 +52,7 @@ public class GameClient implements NotificationHandler {
                 String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
                 result = cmd;
 
-                if (status.equals("LOGGED_IN") || status.equals("IN_GAME")) {
+                if (status.equals("LOGGED_IN") || status.equals("IN_GAME") || status.equals("OBSERVER")) {
                     if (cmd.equals("quit")) {
                         result = "Hamburger";
                     }
@@ -139,31 +140,54 @@ public class GameClient implements NotificationHandler {
     }
 
     private static void gameUi(String cmd, String[] params) throws ResponseException {
+        CheckFormat form = new CheckFormat();
         switch (cmd) {
             case "redraw":
-                ChessUi.main(currBoard, currUserColor);
+                if (params.length == 0) {
+                    ChessUi.main(currBoard, currUserColor, null);
+                } else {
+                    System.out.println("Invalid \"redraw\" format!");
+                }
                 break;
             case "leave":
-                ws.leaveGame(authToken, currGameID, currUser);
-                inGame = 0;
-                status = "LOGGED_IN";
-                System.out.println("You have left the game.");
+                if (params.length == 0) {
+                    ws.leaveGame(authToken, currGameID, currUser);
+                    inGame = 0;
+                    status = "LOGGED_IN";
+                    System.out.println("You have left the game.");
+                } else {
+                    System.out.println("Invalid \"leave\" format!");
+                }
                 break;
             case "move":
-                ChessMove chessMove = new ConvertMove().main(params[0], currUserColor);
-                ws.makeMove(authToken, currGameID, chessMove, params[0]);
+                form.checkFormatMove(params);
+                if (form.getBool()) {
+                    ChessMove chessMove = new ConvertMove().main(params, currUserColor);
+
+                    ws.makeMove(authToken, currGameID, chessMove, params[0], currUser);
+                }
                 break;
             case "resign":
-                System.out.print("Are you sure you want to admit defeat? (\"yes\" or \"no\"): ");
-                Scanner scanner = new Scanner(System.in);
-                String line = scanner.nextLine();
-                if (line.equals("yes")) {
-                    ws.resignGame(authToken, currGameID, currUser);
+                if (params.length == 0) {
+                    System.out.print("Are you sure you want to admit defeat? (\"yes\" or \"no\"): ");
+                    Scanner scanner = new Scanner(System.in);
+                    String line = scanner.nextLine();
+                    if (line.equals("yes")) {
+                        ws.resignGame(authToken, currGameID, currUser);
+                    }
+                } else {
+                    System.out.println("Invalid \"resign\" format!");
                 }
                 break;
             case "highlight":
+                form.checkFormatSmall(params);
+                if (form.getBool()) {
+                    ChessPosition position = new ConvertMove().highLightPiece(params[0]);
+                    ChessUi.main(currBoard, currUserColor, position);
+                }
+                break;
             default:
-                System.out.println("Help is in development");
+                gameHelp();
         }
     }
 
@@ -178,7 +202,7 @@ public class GameClient implements NotificationHandler {
                 currGameID = games.get(gameNum).gameID();
                 server.joinGame(new GameRequest(null, params[1], currGameID), authToken);
                 System.out.print("Joined game " + params[0] + "\n");
-                ws.joinGame(authToken, currGameID, currUser);
+                ws.joinGame(authToken, currGameID, currUser, params[1]);
                 currUserColor = params[1];
                 status = "IN_GAME";
                 inGame = 1;
@@ -200,9 +224,9 @@ public class GameClient implements NotificationHandler {
             } else if (params.length == 1) {
                 int gameNum = Integer.parseInt(params[0]);
                 currGameID = games.get(gameNum).gameID();
-                ws.joinGame(authToken, currGameID, currUser);
+                ws.joinGame(authToken, currGameID, currUser, "OBSERVER");
                 currUserColor = "OBSERVE";
-                status = "IN_GAME";
+                status = "OBSERVER";
                 inGame = 1;
             } else {
                 System.out.print("Invalid \"observe\" format!\n");
@@ -264,9 +288,9 @@ public class GameClient implements NotificationHandler {
         } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
             System.out.println();
             currBoard = notification.getGame().getBoard();
-            ChessUi.main(notification.getGame().getBoard(), currUserColor);
+            ChessUi.main(notification.getGame().getBoard(), currUserColor, null);
         } else if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
-            System.out.print(notification.getErrorMessage());
+            System.out.println("\n" + notification.getErrorMessage());
         }
     }
 
@@ -319,6 +343,36 @@ public class GameClient implements NotificationHandler {
                         SET_TEXT_COLOR_MAGENTA +
                         " - Shows possible commands\n"
                         + RESET_TEXT_COLOR
+        );
+    }
+
+    private static void gameHelp() {
+        System.out.print(
+                SET_TEXT_COLOR_BLUE +
+                        "  redraw" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Redraws the chess board\n" +
+                        SET_TEXT_COLOR_BLUE +
+                        "  leave" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Leave the current game\n" +
+                        SET_TEXT_COLOR_BLUE +
+                        "  move <command> <promotion>" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Move a piece with a command like \"a2a3\" or if promoting a pawn \"a2a1 queen\"\n" +
+                        SET_TEXT_COLOR_BLUE +
+                        "  resign" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Admit defeat, will prompt with a confirmation\n" +
+                        SET_TEXT_COLOR_BLUE +
+                        "  highlight <command>" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Show possible moves for piece with a command like \"a2\"\n" +
+                        SET_TEXT_COLOR_BLUE +
+                        "  help" +
+                        SET_TEXT_COLOR_MAGENTA +
+                        " - Shows possible commands\n" +
+                        RESET_TEXT_COLOR
         );
     }
 }

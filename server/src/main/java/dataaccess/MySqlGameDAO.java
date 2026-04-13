@@ -85,7 +85,7 @@ public class MySqlGameDAO implements GameDAO {
             if (playerColor.equals("WHITE")) {
                 statement = "UPDATE games SET whiteUsername=NULL WHERE gameID=?";
             } else {
-                statement = "UPDATE games SET whiteUsername=NULL WHERE gameID=?";
+                statement = "UPDATE games SET blackUsername=NULL WHERE gameID=?";
             }
             Update.executeUpdate(statement, gameId);
         } else if (chess != null) {

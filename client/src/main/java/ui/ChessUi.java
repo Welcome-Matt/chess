@@ -1,23 +1,26 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+
 import static ui.EscapeSequences.*;
 
 public class ChessUi {
 
     private static ChessBoard uiBoard;
+    private static Collection<ChessMove> validMoves;
 
-    public static void main(ChessBoard board, String team) {
+    public static void main(ChessBoard board, String team, ChessPosition piecePosition) {
         if (team.equals("OBSERVE")) {
             team = "WHITE";
         }
 
+        if (piecePosition != null && board.getPiece(piecePosition) != null) {
+            validMoves = board.getPiece(piecePosition).pieceMoves(board, piecePosition);
+        }
         uiBoard = board;
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
@@ -29,6 +32,7 @@ public class ChessUi {
 
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
+        validMoves = null;
     }
 
     private static void drawHeaders(PrintStream out, String team) {
@@ -119,6 +123,29 @@ public class ChessUi {
 
     private static void drawSquare(PrintStream out, int col, int row) {
         ChessPiece piece = uiBoard.getPiece(new ChessPosition(row+1, col+1));
+        if (validMoves != null) {
+            for (ChessMove move : validMoves) {
+                if (new ChessPosition(row + 1, col + 1).equals(move.getEndPosition()) ||
+                        new ChessPosition(row + 1, col + 1).equals(move.getStartPosition())) {
+                    if (new ChessPosition(row + 1, col + 1).equals(move.getStartPosition())) {
+                        setRed(out);
+                    } else if (row % 2 == 0) {
+                        if (col % 2 == 1) {
+                            setLightYellow(out);
+                        } else {
+                            setYellow(out);
+                        }
+
+                    } else {
+                        if (col % 2 == 1) {
+                            setYellow(out);
+                        } else {
+                            setLightYellow(out);
+                        }
+                    }
+                }
+            }
+        }
 
         if (piece != null && piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
             out.print(SET_TEXT_COLOR_WHITE);
@@ -156,6 +183,21 @@ public class ChessUi {
         out.print(SET_BG_COLOR_DARK_GREEN);
         out.print(SET_TEXT_COLOR_GREEN);
         out.print(" " + num + " ");
+    }
+
+    private static void setRed(PrintStream out) {
+        out.print(SET_TEXT_COLOR_RED);
+        out.print(SET_BG_COLOR_RED);
+    }
+
+    private static void setLightYellow(PrintStream out) {
+        out.print(SET_TEXT_COLOR_LIGHT_YELLOW);
+        out.print(SET_BG_COLOR_LIGHT_YELLOW);
+    }
+
+    private static void setYellow(PrintStream out) {
+        out.print(SET_BG_COLOR_YELLOW);
+        out.print(SET_TEXT_COLOR_YELLOW);
     }
 
     private static void setLightGrey(PrintStream out) {

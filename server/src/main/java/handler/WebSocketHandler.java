@@ -67,7 +67,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             connections.broadcast(session, board, command.getGameID());
             var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            notification.setMessage(command.getUsername() + " has entered!");
+            notification.setMessage(command.getUsername() + " joined as " + command.getStrMove());
             connections.broadcast(session, notification, command.getGameID());
         } catch (DataAccessException ex) {
             var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
@@ -80,28 +80,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             server.authenticate(command.getAuthToken());
             GameData data = server.getGame(command.getGameID());
-            String username = server.getAuth(command.getAuthToken()).username();
-            if (!username.equals(data.whiteUsername()) &&
-                    !username.equals(data.blackUsername())) {
-                var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                error.setErrorMessage("Error: Invalid command");
-                connections.broadcast(session, error, command.getGameID());
+            if (data.game().getTeamTurn().equals(ChessGame.TeamColor.NONE)) {
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                notification.setErrorMessage("Error: The game is over!");
+                connections.sendNotification(session, notification);
             } else {
-                ChessGame game = data.game();
-                ChessGame.TeamColor pieceColor = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
-                if (username.equals(data.blackUsername()) && pieceColor.equals(ChessGame.TeamColor.WHITE) ||
-                        username.equals(data.whiteUsername()) && pieceColor.equals(ChessGame.TeamColor.BLACK)) {
+                String username = server.getAuth(command.getAuthToken()).username();
+                if (data.game().getTeamTurn().equals(ChessGame.TeamColor.WHITE) &&
+                        username.equals(data.blackUsername())) {
+                    throw new Exception("Error: Not your turn!");
+                } else if (data.game().getTeamTurn().equals(ChessGame.TeamColor.BLACK) &&
+                        username.equals(data.whiteUsername())) {
+                    throw new Exception("Error: Not your turn!");
+                }
+                if (!username.equals(data.whiteUsername()) &&
+                        !username.equals(data.blackUsername())) {
                     var error = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                    error.setErrorMessage("Error: Can\'t move that piece");
+                    error.setErrorMessage("Error: Invalid command");
                     connections.broadcast(session, error, command.getGameID());
                 } else {
+                    ChessGame game = data.game();
                     game.makeMove(command.getMove());
-                    if (game.isInCheckmate(ChessGame.TeamColor.WHITE) ||
-                            game.isInCheckmate(ChessGame.TeamColor.BLACK) ||
-                            game.isInStalemate(ChessGame.TeamColor.WHITE) ||
-                            game.isInStalemate(ChessGame.TeamColor.BLACK)) {
-                        game.setTeamTurn(ChessGame.TeamColor.NONE);
-                    }
 
                     server.updateGame(command.getGameID(), game);
 
@@ -114,9 +113,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     notification.setMessage(command.getUsername() + " made move " + command.getStrMove());
                     connections.broadcast(session, notification, command.getGameID());
 
-                    if (chessGame.getTeamTurn().equals(ChessGame.TeamColor.NONE)) {
+                    if (game.isInCheckmate(game.getTeamTurn()) || game.isInStalemate(game.getTeamTurn())) {
+                        game.setTeamTurn(ChessGame.TeamColor.NONE);
+                        server.updateGame(command.getGameID(), game);
+                        var check = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                        if (game.getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
+                            check.setMessage(data.blackUsername() + " is in checkmate! Game over!");
+                        } else {
+                            check.setMessage(data.whiteUsername() + " is in checkmate! Game over!");
+                        }
+                        connections.broadcastAll(check, command.getGameID());
+                    } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
                         notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                        notification.setMessage("GAME OVER!");
+                        if (chessGame.getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
+                            notification.setMessage(data.whiteUsername() + " is in check!");
+                        } else {
+                            notification.setMessage(data.blackUsername() + " is in check!");
+                        }
                         connections.broadcastAll(notification, command.getGameID());
                     }
                 }
